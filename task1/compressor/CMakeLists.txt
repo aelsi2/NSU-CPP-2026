@@ -15,5 +15,5 @@ target_link_libraries(Compressor
 )
 
 install(TARGETS Compressor
-  RUNTIME
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )

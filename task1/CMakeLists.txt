@@ -11,5 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 
 enable_testing()
 
+include(GNUInstallDirs)
+
 add_subdirectory(compressor)
 add_subdirectory(libcompressor)

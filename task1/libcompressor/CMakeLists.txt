@@ -38,6 +38,6 @@ set(DOXYGEN_PROJECT_NAME "LibCompressor")
 set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/docs)
 set(DOXYGEN_EXTRACT_ALL YES)
 
-doxygen_add_docs(LibCompressorDocs include/libcompressor.hpp)
+doxygen_add_docs(LibCompressorDocs include/libcompressor/libcompressor.hpp)
 
 add_subdirectory(tests)

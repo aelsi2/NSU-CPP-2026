@@ -17,7 +17,6 @@ target_link_libraries(
 set(TEST_REPORT ${CMAKE_BINARY_DIR}/test_results.xml)
 
 add_test(
-  NAME LibCompressorRunTest
+  NAME LibCompressorTest
   COMMAND ${CMAKE_BINARY_DIR}/libcompressor/tests/libcompressor_test --gtest_output=xml:${TEST_REPORT}
-  BUILD_DEPENDS LibCompressorTest
 )

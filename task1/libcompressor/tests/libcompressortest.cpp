@@ -9,7 +9,7 @@ TEST(LibCompressor, ZlibNotEmptyToNotEmpty) {
   auto output = libcompressor_compress(libcompressor_Zlib, input);
   std::free(output.data);
 
-  EXPECT_NE(0, output.size);
+  ASSERT_NE(0, output.size);
 }
 
 TEST(LibCompressor, BzipNotEmptyToNotEmpty) {
@@ -18,7 +18,7 @@ TEST(LibCompressor, BzipNotEmptyToNotEmpty) {
   auto output = libcompressor_compress(libcompressor_Bzip, input);
   std::free(output.data);
 
-  EXPECT_NE(0, output.size);
+  ASSERT_NE(0, output.size);
 }
 
 TEST(LibCompressor, ZlibEmptyToEmpty) {
@@ -27,7 +27,7 @@ TEST(LibCompressor, ZlibEmptyToEmpty) {
   auto output = libcompressor_compress(libcompressor_Zlib, input);
   std::free(output.data);
 
-  EXPECT_EQ(0, output.size);
+  ASSERT_EQ(0, output.size);
 }
 
 TEST(LibCompressor, BzipEmptyToEmpty) {
@@ -36,7 +36,7 @@ TEST(LibCompressor, BzipEmptyToEmpty) {
   auto output = libcompressor_compress(libcompressor_Bzip, input);
   std::free(output.data);
 
-  EXPECT_EQ(0, output.size);
+  ASSERT_EQ(0, output.size);
 }
 
 TEST(LibCompressor, ZlibTestString) {
@@ -49,8 +49,8 @@ TEST(LibCompressor, ZlibTestString) {
 
   auto output = libcompressor_compress(libcompressor_Zlib, input);
 
-  EXPECT_EQ(sizeof(expected_output), output.size);
-  EXPECT_EQ(0, std::memcmp(output.data, expected_output, sizeof(expected_output)));
+  ASSERT_EQ(sizeof(expected_output), output.size);
+  ASSERT_EQ(0, std::memcmp(output.data, expected_output, sizeof(expected_output)));
   
   std::free(output.data);
 }
@@ -67,8 +67,8 @@ TEST(LibCompressor, BzipTestString) {
 
   auto output = libcompressor_compress(libcompressor_Bzip, input);
 
-  EXPECT_EQ(sizeof(expected_output), output.size);
-  EXPECT_EQ(0, std::memcmp(output.data, expected_output, sizeof(expected_output)));
+  ASSERT_EQ(sizeof(expected_output), output.size);
+  ASSERT_EQ(0, std::memcmp(output.data, expected_output, sizeof(expected_output)));
   
   std::free(output.data);
 }

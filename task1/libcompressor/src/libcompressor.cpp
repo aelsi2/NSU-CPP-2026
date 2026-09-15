@@ -1,4 +1,4 @@
-#include "libcompressor.hpp"
+#include "libcompressor/libcompressor.hpp"
 
 #include <bzlib.h>
 #include <zconf.h>

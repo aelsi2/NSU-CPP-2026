@@ -9,13 +9,21 @@ target_sources(
     FILE_SET HEADERS
     BASE_DIRS include
     FILES
-      include/libcompressor.hpp
+      include/libcompressor/libcompressor.hpp
 )
 
 install(
   TARGETS LibCompressor
+  EXPORT LibCompressorTargets
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+  EXPORT LibCompressorTargets
+  FILE LibCompressorTargets.cmake
+  NAMESPACE LibCompressor::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libcompressor
 )
 
 find_package(ZLIB REQUIRED)

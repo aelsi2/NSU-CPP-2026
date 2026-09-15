@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <cstring>
-#include <libcompressor.hpp>
+#include <libcompressor/libcompressor.hpp>
 
 TEST(LibCompressor, ZlibNotEmptyToNotEmpty) {
   char input_buf[] = "Hello";

@@ -48,10 +48,11 @@ TEST(LibCompressor, ZlibTestString) {
   };
 
   auto output = libcompressor_compress(libcompressor_Zlib, input);
-  std::free(output.data);
 
   EXPECT_EQ(sizeof(expected_output), output.size);
   EXPECT_EQ(0, std::memcmp(output.data, expected_output, sizeof(expected_output)));
+  
+  std::free(output.data);
 }
 
 TEST(LibCompressor, BzipTestString) {
@@ -65,10 +66,11 @@ TEST(LibCompressor, BzipTestString) {
   };
 
   auto output = libcompressor_compress(libcompressor_Bzip, input);
-  std::free(output.data);
 
   EXPECT_EQ(sizeof(expected_output), output.size);
   EXPECT_EQ(0, std::memcmp(output.data, expected_output, sizeof(expected_output)));
+  
+  std::free(output.data);
 }
 
 int main(int argc, char **argv) {

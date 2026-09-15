@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   auto input = libcompressor_Buffer(argv[2], std::strlen(argv[2]));
   auto result = libcompressor_compress(alg_iter->second, input);
 
-  if (result.data == nullptr && result.size == 0) {
+  if (result.data == nullptr) {
     err->error("Compression error.");
     return EXIT_FAILURE;
   }

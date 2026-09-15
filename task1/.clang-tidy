@@ -1,11 +1,5 @@
 ---
 Checks:          'clang-analyzer-*'
-RemovedArgs:
-  - '-fdeps-format=p1689r5'
-  - '-fmodules-ts'
-  - '-fmodule-mapper=libcompressor/CMakeFiles/LibCompressor.dir/src/libcompressor.cpp.o.modmap'
-  - '-fmodule-mapper=compressor/CMakeFiles/Compressor.dir/src/compressor.cpp.o.modmap'
-  - '-fmodule-mapper=libcompressor/tests/CMakeFiles/LibCompressorTest.dir/libcompressortest.cpp.o.modmap'
 WarningsAsErrors: ''
 HeaderFileExtensions:
   - ''

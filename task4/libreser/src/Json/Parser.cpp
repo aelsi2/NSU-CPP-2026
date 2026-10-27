@@ -76,7 +76,11 @@ std::string Parser::parseString() {
     string.push_back(ch);
   }
 
-  return jsonUnescape(string);
+  try {
+    return jsonUnescape(string);
+  } catch (const EscapeError &error) {
+    state.error("Invalid escape code in string.", start);
+  }
 }
 
 std::unique_ptr<StringNode> Parser::parseStringNode() { return std::make_unique<StringNode>(parseString()); }

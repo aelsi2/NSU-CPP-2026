@@ -1,7 +1,6 @@
 #include "LibReser/Utils.hpp"
 
 #include <map>
-#include <set>
 
 using namespace reser;
 
@@ -14,14 +13,15 @@ std::string backslashEscape(const std::string &string, const std::map<char, char
     if (newChar != subst.end()) {
       ch = newChar->second;
       iter = result.erase(iter);
-      iter = result.insert(iter, ch);
+      iter = result.insert(iter, '\\');
+      iter = result.insert(++iter, ch);
     }
   }
 
   return result;
 }
 
-std::string backslashUnescape(const std::string &string, const std::map<char, char> &subst, const std::set<char> skip) {
+std::string backslashUnescape(const std::string &string, const std::map<char, char> &subst) {
   std::string result = string;
   bool prevSlash = false;
   for (auto iter = result.begin(); iter != result.end(); iter++) {
@@ -34,11 +34,6 @@ std::string backslashUnescape(const std::string &string, const std::map<char, ch
       continue;
     }
 
-    if (skip.contains(ch)) {
-      prevSlash = false;
-      continue;
-    }
-
     iter -= 1;
     iter = result.erase(iter);
     iter = result.erase(iter);
@@ -48,6 +43,7 @@ std::string backslashUnescape(const std::string &string, const std::map<char, ch
       throw EscapeError("Invalid escape code");
     }
     iter = result.insert(iter, newChar->second);
+    prevSlash = false;
   }
 
   return result;
@@ -72,14 +68,12 @@ std::string reser::jsonUnescape(const std::string &string) {
   static const std::map<char, char> subst = {
       {'"', '"'}, {'\\', '\\'}, {'/', '/'}, {'b', '\b'}, {'f', '\f'}, {'n', '\n'}, {'r', '\r'}, {'t', '\t'},
   };
-  static const std::set<char> skip = {'u'};
-  return backslashUnescape(string, subst, skip);
+  return backslashUnescape(string, subst);
 }
 
 std::string reser::tomlUnescape(const std::string &string) {
   static const std::map<char, char> subst = {
       {'"', '"'}, {'\\', '\\'}, {'b', '\b'}, {'f', '\f'}, {'n', '\n'}, {'r', '\r'}, {'t', '\t'}, {'e', '\033'},
   };
-  static const std::set<char> skip = {'u', 'x', 'X'};
-  return backslashUnescape(string, subst, skip);
+  return backslashUnescape(string, subst);
 }

@@ -5,6 +5,7 @@ target_sources(
   PRIVATE
     src/Utils.cpp
     src/Parser.cpp
+    src/DateTime.cpp
     src/Json/IRConverter.cpp
     src/Json/Printer.cpp
     src/Json/Parser.cpp

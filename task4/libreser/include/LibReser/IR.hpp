@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "LibReser/DateTime.hpp"
+
 namespace reser {
 namespace IR {
 
@@ -37,6 +39,7 @@ using StringNode = PrimitiveNode<std::string>;
 using IntNode = PrimitiveNode<std::int64_t>;
 using FloatNode = PrimitiveNode<double>;
 using BoolNode = PrimitiveNode<bool>;
+using DateTimeNode = PrimitiveNode<DateTime>;
 
 class TableNode : public NodeImpl<TableNode> {
  public:
@@ -76,6 +79,7 @@ class Visitor {
   virtual void visit(const IntNode &node) = 0;
   virtual void visit(const FloatNode &node) = 0;
   virtual void visit(const BoolNode &node) = 0;
+  virtual void visit(const DateTimeNode &node) = 0;
   virtual void visit(const TableNode &node) = 0;
   virtual void visit(const ListNode &node) = 0;
   virtual void visit(const TagNode &node) = 0;

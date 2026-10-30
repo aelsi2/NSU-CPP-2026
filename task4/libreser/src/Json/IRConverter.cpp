@@ -71,6 +71,22 @@ static std::vector<TablePattern> tablePatterns = {
           return std::make_unique<IR::TagNode>(std::move(name), std::move(irChildren), std::move(irAttributes));
         },
     },
+    {
+        .match =
+            [](const TableNode &node, const PatternMatcher &) {
+              auto type = node.getValue<StringNode>("$type");
+              auto value = node.getValue<StringNode>("value");
+              DateTime dateTime;
+              return node.nValues() == 2 && type && type->value == "time" && value &&
+                     DateTime::tryFromString(value->value, dateTime);
+            },
+        .apply = [](const TableNode &node, Ast2IR &) -> std::unique_ptr<IR::Node> {
+          auto value = node.getValue<StringNode>("value");
+          DateTime dateTime;
+          DateTime::tryFromString(value->value, dateTime);
+          return std::make_unique<IR::DateTimeNode>(dateTime);
+        },
+    },
 };
 
 std::unique_ptr<IR::Node> Ast2IR::toIR(const AstNode &node, bool quote) {
@@ -165,6 +181,17 @@ void IR2Ast::visit(const IR::IntNode &node) { currentNode = std::make_unique<Int
 void IR2Ast::visit(const IR::FloatNode &node) { currentNode = std::make_unique<FloatNode>(node.value); }
 
 void IR2Ast::visit(const IR::BoolNode &node) { currentNode = std::make_unique<BoolNode>(node.value); }
+
+void IR2Ast::visit(const IR::DateTimeNode &node) {
+  auto type = std::make_unique<StringNode>("time");
+  auto value = std::make_unique<StringNode>(node.value.toString());
+
+  auto time = std::make_unique<TableNode>();
+  time->children["$type"] = std::move(type);
+  time->children["value"] = std::move(value);
+
+  currentNode = std::move(time);
+}
 
 void IR2Ast::visit(const IR::ListNode &node) {
   auto list = std::make_unique<ListNode>();

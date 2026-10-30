@@ -59,6 +59,7 @@ class IR2Ast : IR::Visitor, PatternMatcher {
   void visit(const IR::IntNode &node) override;
   void visit(const IR::FloatNode &node) override;
   void visit(const IR::BoolNode &node) override;
+  void visit(const IR::DateTimeNode &node) override;
   void visit(const IR::TableNode &node) override;
   void visit(const IR::ListNode &node) override;
   void visit(const IR::TagNode &node) override;

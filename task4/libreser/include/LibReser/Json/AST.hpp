@@ -1,19 +1,20 @@
 #ifndef __LIBRESER_JSON_AST_HPP__
 #define __LIBRESER_JSON_AST_HPP__
 
-#include <concepts>
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
+#include "LibReser/AST.hpp"
+
 namespace reser {
 namespace json {
 
 class AstVisitor;
 
-enum class AstNodeType {
+enum class JsonNodeType {
   Null,
   String,
   Int,
@@ -23,60 +24,26 @@ enum class AstNodeType {
   Table,
 };
 
-class AstNode;
+using JsonNode = AstNode<JsonNodeType, AstVisitor>;
 
 template <typename T>
-concept IsAstNode = requires {
-  { T::Type } -> std::same_as<const AstNodeType &>;
-  requires std::derived_from<T, AstNode>;
-};
+concept IsJsonNode = IsAstNode<T, JsonNodeType, AstVisitor>;
 
-class AstNode {
+template <typename Self, JsonNodeType NodeType>
+using JsonNodeImpl = AstNodeImpl<Self, JsonNodeType, AstVisitor, NodeType>;
+
+template <typename Self, JsonNodeType NodeType>
+using JsonPrimitiveNode = PrimitiveNode<Self, JsonNodeType, AstVisitor, NodeType>;
+
+class NullNode : public JsonNodeImpl<NullNode, JsonNodeType::Null> {};
+using StringNode = JsonPrimitiveNode<std::string, JsonNodeType::String>;
+using IntNode = JsonPrimitiveNode<std::int64_t, JsonNodeType::Int>;
+using FloatNode = JsonPrimitiveNode<double, JsonNodeType::Float>;
+using BoolNode = JsonPrimitiveNode<bool, JsonNodeType::Bool>;
+
+class ListNode : public JsonNodeImpl<ListNode, JsonNodeType::List> {
  public:
-  virtual ~AstNode() = default;
-  virtual void accept(AstVisitor &) const = 0;
-
-  template <IsAstNode T>
-  inline bool isa() const {
-    return type() == T::Type;
-  }
-
-  template <IsAstNode T>
-  inline const T *as() const {
-    return isa<T>() ? static_cast<const T *>(this) : nullptr;
-  }
-
- protected:
-  virtual AstNodeType type() const = 0;
-};
-
-template <typename Self, AstNodeType NodeType>
-class AstNodeImpl : public AstNode {
- public:
-  static constexpr AstNodeType Type = NodeType;
-  void accept(AstVisitor &visitor) const override;
-
- protected:
-  AstNodeType type() const override { return Type; }
-};
-
-template <typename Primitive, AstNodeType NodeType>
-class PrimitiveNode : public AstNodeImpl<PrimitiveNode<Primitive, NodeType>, NodeType> {
- public:
-  PrimitiveNode(Primitive value) : value(std::move(value)) {}
-
-  Primitive value;
-};
-
-class NullNode : public AstNodeImpl<NullNode, AstNodeType::Null> {};
-using StringNode = PrimitiveNode<std::string, AstNodeType::String>;
-using IntNode = PrimitiveNode<std::int64_t, AstNodeType::Int>;
-using FloatNode = PrimitiveNode<double, AstNodeType::Float>;
-using BoolNode = PrimitiveNode<bool, AstNodeType::Bool>;
-
-class ListNode : public AstNodeImpl<ListNode, AstNodeType::List> {
- public:
-  using ChildVector = std::vector<std::unique_ptr<AstNode>>;
+  using ChildVector = std::vector<std::unique_ptr<JsonNode>>;
 
   ListNode() {}
   ListNode(ChildVector children) : children(std::move(children)) {}
@@ -84,9 +51,9 @@ class ListNode : public AstNodeImpl<ListNode, AstNodeType::List> {
   ChildVector children;
 };
 
-class TableNode : public AstNodeImpl<TableNode, AstNodeType::Table> {
+class TableNode : public JsonNodeImpl<TableNode, JsonNodeType::Table> {
  public:
-  using ChildMap = std::unordered_map<std::string, std::unique_ptr<AstNode>>;
+  using ChildMap = std::unordered_map<std::string, std::unique_ptr<JsonNode>>;
 
   TableNode() {}
   TableNode(ChildMap children) : children(std::move(children)) {}
@@ -112,18 +79,13 @@ class AstVisitor {
   virtual void visit(const TableNode &node) = 0;
 };
 
-template <typename Self, AstNodeType NodeType>
-void AstNodeImpl<Self, NodeType>::accept(AstVisitor &visitor) const {
-  visitor.visit(*static_cast<const Self *>(this));
-}
-
-static_assert(IsAstNode<NullNode>);
-static_assert(IsAstNode<StringNode>);
-static_assert(IsAstNode<IntNode>);
-static_assert(IsAstNode<FloatNode>);
-static_assert(IsAstNode<BoolNode>);
-static_assert(IsAstNode<ListNode>);
-static_assert(IsAstNode<TableNode>);
+static_assert(IsJsonNode<NullNode>);
+static_assert(IsJsonNode<StringNode>);
+static_assert(IsJsonNode<IntNode>);
+static_assert(IsJsonNode<FloatNode>);
+static_assert(IsJsonNode<BoolNode>);
+static_assert(IsJsonNode<ListNode>);
+static_assert(IsJsonNode<TableNode>);
 
 };  // namespace json
 };  // namespace reser

@@ -28,7 +28,7 @@ class PatternMatcher {
 class Ast2IR : AstVisitor, PatternMatcher {
  public:
   Ast2IR(std::span<TablePattern> patterns) : tablePatterns(patterns) {}
-  std::unique_ptr<IR::Node> toIR(const AstNode &node, bool quote = false);
+  std::unique_ptr<IR::Node> toIR(const JsonNode &node, bool quote = false);
 
  private:
   bool isSpecial(const TableNode &node) const override;
@@ -49,7 +49,7 @@ class Ast2IR : AstVisitor, PatternMatcher {
 class IR2Ast : IR::Visitor, PatternMatcher {
  public:
   IR2Ast(std::span<TablePattern> patterns) : tablePatterns(patterns) {}
-  std::unique_ptr<AstNode> toAst(const IR::Node &node);
+  std::unique_ptr<JsonNode> toAst(const IR::Node &node);
 
  private:
   bool isSpecial(const TableNode &node) const override;
@@ -64,17 +64,17 @@ class IR2Ast : IR::Visitor, PatternMatcher {
   void visit(const IR::ListNode &node) override;
   void visit(const IR::TagNode &node) override;
 
-  std::unique_ptr<AstNode> currentNode = nullptr;
+  std::unique_ptr<JsonNode> currentNode = nullptr;
   std::span<TablePattern> tablePatterns;
 };
 };  // namespace detail
 
 class IRConverter {
  public:
-  static std::unique_ptr<AstNode> fromIR(const IR::Node &node);
-  static std::unique_ptr<IR::Node> toIR(const AstNode &node);
+  static std::unique_ptr<JsonNode> fromIR(const IR::Node &node);
+  static std::unique_ptr<IR::Node> toIR(const JsonNode &node);
 };
-static_assert(IsIRConverter<IRConverter, AstNode>);
+static_assert(IsIRConverter<IRConverter, JsonNode>);
 
 };  // namespace json
 };  // namespace reser

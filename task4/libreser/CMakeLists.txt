@@ -9,6 +9,7 @@ target_sources(
     src/Json/IRConverter.cpp
     src/Json/Printer.cpp
     src/Json/Parser.cpp
+    src/Xml/Printer.cpp
   PUBLIC
     FILE_SET HEADERS
     BASE_DIRS include
@@ -18,6 +19,10 @@ target_sources(
       include/LibReser/Json/IRConverter.hpp
       include/LibReser/Json/Printer.hpp
       include/LibReser/Json/Parser.hpp
+      include/LibReser/Xml/AST.hpp
+      include/LibReser/Xml/IRConverter.hpp
+      include/LibReser/Xml/Printer.hpp
+      include/LibReser/Xml/Parser.hpp
 )
 
 add_subdirectory(test)

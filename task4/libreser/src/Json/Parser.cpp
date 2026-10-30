@@ -11,12 +11,12 @@
 using namespace reser::json;
 using namespace reser;
   
-std::unique_ptr<AstNode> Parser::parse(std::istream &stream) {
+std::unique_ptr<JsonNode> Parser::parse(std::istream &stream) {
   Parser parser(stream);
   return parser.parseNode();
 }
 
-std::unique_ptr<AstNode> Parser::parseNode() {
+std::unique_ptr<JsonNode> Parser::parseNode() {
   state.skipWhitespace();
   switch (state.peek()) {
     case '{':
@@ -85,7 +85,7 @@ std::string Parser::parseString() {
 
 std::unique_ptr<StringNode> Parser::parseStringNode() { return std::make_unique<StringNode>(parseString()); }
 
-std::unique_ptr<AstNode> Parser::parseIntOrFloatNode() {
+std::unique_ptr<JsonNode> Parser::parseIntOrFloatNode() {
   Position start = state.pos();
 
   std::string stringNum = state.readChars("0123456789-+.eE");
@@ -138,7 +138,7 @@ std::unique_ptr<TableNode> Parser::parseTableNode() {
     state.skipWhitespace();
     state.parseToken(":");
     state.skipWhitespace();
-    std::unique_ptr<AstNode> value = parseNode();
+    std::unique_ptr<JsonNode> value = parseNode();
     state.skipWhitespace();
     
     if (tableNode->children.find(key) != tableNode->children.end()) {
@@ -169,7 +169,7 @@ std::unique_ptr<ListNode> Parser::parseListNode() {
         state.error("Unterminated list.", start);
     }
 
-    std::unique_ptr<AstNode> value = parseNode();
+    std::unique_ptr<JsonNode> value = parseNode();
     state.skipWhitespace();
     
     listNode->children.push_back(std::move(value));

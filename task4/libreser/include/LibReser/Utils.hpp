@@ -11,7 +11,7 @@ std::string jsonUnescape(const std::string &string);
 std::string tomlEscape(const std::string &string);
 std::string tomlUnescape(const std::string &string);
 
-std::string xmlEscale(const std::string &string);
+std::string xmlEscape(const std::string &string);
 std::string xmlUnescape(const std::string &string);
 
 class EscapeError : public std::runtime_error {

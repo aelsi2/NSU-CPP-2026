@@ -14,14 +14,14 @@ namespace json {
 class Parser {
  public:
   Parser(std::istream &stream) : state(stream) {}
-  static std::unique_ptr<AstNode> parse(std::istream &stream);
+  static std::unique_ptr<JsonNode> parse(std::istream &stream);
 
  private:
   std::string parseString();
-  std::unique_ptr<AstNode> parseNode();
+  std::unique_ptr<JsonNode> parseNode();
   std::unique_ptr<NullNode> parseNullNode();
   std::unique_ptr<StringNode> parseStringNode();
-  std::unique_ptr<AstNode> parseIntOrFloatNode();
+  std::unique_ptr<JsonNode> parseIntOrFloatNode();
   std::unique_ptr<BoolNode> parseTrueNode();
   std::unique_ptr<BoolNode> parseFalseNode();
   std::unique_ptr<TableNode> parseTableNode();
@@ -30,7 +30,7 @@ class Parser {
   ParserState state;
 };
 
-static_assert(IsParser<Parser, AstNode>);
+static_assert(IsParser<Parser, JsonNode>);
 
 };  // namespace json
 };  // namespace reser

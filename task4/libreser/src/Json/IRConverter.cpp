@@ -89,7 +89,7 @@ static std::vector<TablePattern> tablePatterns = {
     },
 };
 
-std::unique_ptr<IR::Node> Ast2IR::toIR(const AstNode &node, bool quote) {
+std::unique_ptr<IR::Node> Ast2IR::toIR(const JsonNode &node, bool quote) {
   this->quote = quote;
   node.accept(*this);
   return std::move(currentNode);
@@ -158,7 +158,7 @@ void Ast2IR::visit(const TableNode &node) {
   quote = false;
 }
 
-std::unique_ptr<AstNode> IR2Ast::toAst(const IR::Node &node) {
+std::unique_ptr<JsonNode> IR2Ast::toAst(const IR::Node &node) {
   node.accept(*this);
   return std::move(currentNode);
 }
@@ -242,12 +242,12 @@ void IR2Ast::visit(const IR::TagNode &node) {
   currentNode = std::move(tag);
 }
 
-std::unique_ptr<AstNode> IRConverter::fromIR(const IR::Node &node) {
+std::unique_ptr<JsonNode> IRConverter::fromIR(const IR::Node &node) {
   IR2Ast converter(tablePatterns);
   return converter.toAst(node);
 }
 
-std::unique_ptr<IR::Node> IRConverter::toIR(const AstNode &node) {
+std::unique_ptr<IR::Node> IRConverter::toIR(const JsonNode &node) {
   Ast2IR converter(tablePatterns);
   return converter.toIR(node);
 }

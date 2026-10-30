@@ -5,7 +5,7 @@
 using namespace reser::json;
 using namespace reser;
 
-void Printer::print(std::ostream &stream, const AstNode &node) {
+void Printer::print(std::ostream &stream, const JsonNode &node) {
   Printer printer(stream);
   node.accept(printer);
 }

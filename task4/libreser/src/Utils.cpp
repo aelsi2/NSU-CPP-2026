@@ -77,3 +77,13 @@ std::string reser::tomlUnescape(const std::string &string) {
   };
   return backslashUnescape(string, subst);
 }
+
+std::string reser::xmlEscape(const std::string &string) {
+  // TODO: XML escape
+  return string;
+}
+
+std::string reser::xmlUnescape(const std::string &string) {
+  // TODO: XML unescape
+  return string;
+}

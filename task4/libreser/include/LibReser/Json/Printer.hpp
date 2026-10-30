@@ -9,7 +9,7 @@ namespace json {
 
 class Printer : AstVisitor {
  public:
-  static void print(std::ostream &stream, const AstNode &node);
+  static void print(std::ostream &stream, const JsonNode &node);
 
  private:
   Printer(std::ostream &stream, std::string_view indent = "    ") : stream(stream), indentLevel(0), indent(indent) {};
@@ -28,7 +28,7 @@ class Printer : AstVisitor {
   size_t indentLevel;
   std::string_view indent;
 };
-static_assert(IsPrinter<Printer, AstNode>);
+static_assert(IsPrinter<Printer, JsonNode>);
 
 };  // namespace json
 };  // namespace reser

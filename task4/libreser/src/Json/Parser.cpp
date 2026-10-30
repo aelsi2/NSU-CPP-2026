@@ -88,7 +88,7 @@ std::unique_ptr<StringNode> Parser::parseStringNode() { return std::make_unique<
 std::unique_ptr<JsonNode> Parser::parseIntOrFloatNode() {
   Position start = state.pos();
 
-  std::string stringNum = state.readChars("0123456789-+.eE");
+  std::string stringNum = state.readAnyChar("0123456789-+.eE");
   const char *stringNumStart = stringNum.data();
   const char *stringNumEnd = stringNum.data() + stringNum.size();
 

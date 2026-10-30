@@ -12,6 +12,24 @@ int ParserState::peek() {
   return stream.peek();
 }
 
+int ParserState::peek2() {
+  if (stream.eof()) {
+    return Eof;
+  }
+  stream.get();
+  int result = stream.eof() ? Eof : stream.peek();
+  stream.unget();
+  return result;
+}
+
+bool ParserState::match(char ch) {
+  return peek() == ch;
+}
+
+bool ParserState::match2(char ch1, char ch2) {
+  return peek() == ch1 && peek2() == ch2;
+}
+
 int ParserState::consume() {
   if (stream.eof()) {
     return Eof;
@@ -47,9 +65,18 @@ void ParserState::skipWhitespace(bool skipNewLine) {
   }
 }
 
-std::string ParserState::readChars(const std::string_view chars) {
+std::string ParserState::readAnyChar(const std::string_view chars) {
   std::string result;
   while (peek() != Eof && chars.find(peek()) != chars.npos) {
+    int ch = consume();
+    result.push_back(ch);
+  }
+  return result;
+}
+
+std::string ParserState::readUntilAny(const std::string_view chars) {
+  std::string result;
+  while (peek() != Eof && chars.find(peek()) == chars.npos) {
     int ch = consume();
     result.push_back(ch);
   }

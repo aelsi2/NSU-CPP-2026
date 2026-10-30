@@ -10,6 +10,7 @@ target_sources(
     src/Json/Printer.cpp
     src/Json/Parser.cpp
     src/Xml/Printer.cpp
+    src/Xml/Parser.cpp
   PUBLIC
     FILE_SET HEADERS
     BASE_DIRS include

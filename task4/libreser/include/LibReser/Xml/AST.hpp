@@ -1,6 +1,7 @@
 #ifndef __LIBRESER_XML_AST_HPP__
 #define __LIBRESER_XML_AST_HPP__
 
+#include <cctype>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -25,10 +26,21 @@ concept IsXmlNode = IsAstNode<T, XmlNodeType, AstVisitor>;
 template <typename Self, XmlNodeType NodeType>
 using XmlNodeImpl = AstNodeImpl<Self, XmlNodeType, AstVisitor, NodeType>;
 
-template <typename Self, XmlNodeType NodeType>
-using XmlPrimitiveNode = PrimitiveNode<Self, XmlNodeType, AstVisitor, NodeType>;
+class TextNode : public XmlNodeImpl<TextNode, XmlNodeType::Text> {
+ public:
+  TextNode(std::string value) : value(std::move(value)) {}
 
-using TextNode = XmlPrimitiveNode<std::string, XmlNodeType::Text>;
+  bool isSpace() const {
+    for (const char &ch : value) {
+      if (!std::isspace(ch)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  std::string value;
+};
 
 class TagNode : public XmlNodeImpl<TagNode, XmlNodeType::Tag> {
  public:
@@ -37,6 +49,7 @@ class TagNode : public XmlNodeImpl<TagNode, XmlNodeType::Tag> {
 
   TagNode(std::string name, ChildVector children, AttrMap attributes)
       : name(std::move(name)), children(std::move(children)), attributes(std::move(attributes)) {}
+  TagNode(std::string name) : name(std::move(name)) {}
 
   bool hasText() const {
     for (const auto &child : children) {

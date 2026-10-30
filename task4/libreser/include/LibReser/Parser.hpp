@@ -18,12 +18,16 @@ class ParserState {
   static constexpr int Eof = -1;
 
   int peek();
+  int peek2();
+  bool match(char ch);
+  bool match2(char ch1, char ch2);
   int consume();
   const Position &pos() const { return position; }
 
   void parseToken(std::string_view token);
   void skipWhitespace(bool skipNewLine = true);
-  std::string readChars(const std::string_view chars);
+  std::string readAnyChar(const std::string_view chars);
+  std::string readUntilAny(const std::string_view chars);
 
   [[noreturn]]
   void error(const std::string &message) const;

@@ -14,6 +14,10 @@ target_sources(
     src/Xml/Printer.cpp
     src/Xml/Parser.cpp
     src/Xml/Backend.cpp
+    src/Toml/IRConverter.cpp
+    src/Toml/Printer.cpp
+    src/Toml/Parser.cpp
+    src/Toml/Backend.cpp
   PUBLIC
     FILE_SET HEADERS
     BASE_DIRS include
@@ -29,6 +33,11 @@ target_sources(
       include/LibReser/Xml/Printer.hpp
       include/LibReser/Xml/Parser.hpp
       include/LibReser/Xml/Backend.hpp
+      include/LibReser/Toml/AST.hpp
+      include/LibReser/Toml/IRConverter.hpp
+      include/LibReser/Toml/Printer.hpp
+      include/LibReser/Toml/Parser.hpp
+      include/LibReser/Toml/Backend.hpp
 )
 
 add_subdirectory(test)

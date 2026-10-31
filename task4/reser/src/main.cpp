@@ -4,6 +4,7 @@
 #include "LibReser/Format.hpp"
 #include "LibReser/Json/Backend.hpp"
 #include "LibReser/Parser.hpp"
+#include "LibReser/Toml/Backend.hpp"
 #include "LibReser/Xml/Backend.hpp"
 
 using namespace reser;
@@ -11,6 +12,7 @@ using namespace reser;
 static std::unordered_map<std::string, FormatBackend &> Backends = {
     {"json", json::Backend},
     {"xml", xml::Backend},
+    {"toml", toml::Backend},
 };
 
 static void printFormats(std::ostream &stream) {

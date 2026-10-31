@@ -25,7 +25,7 @@ static std::vector<TagPattern> tagPatterns = {
               if (auto tagChild = node.getChild<TagNode>()) {
                 return matcher.isSpecial(*tagChild);
               }
-              return matcher.getDepth() == 1;
+              return matcher.getRecursionDepth() == 1;
             },
         .apply = [](const TagNode &node, Ast2IR &converter) -> std::unique_ptr<IR::Node> {
           auto child = node.getChild<XmlNode>();
@@ -214,9 +214,9 @@ static std::vector<TagPattern> tagPatterns = {
 std::unique_ptr<IR::Node> Ast2IR::toIR(const XmlNode &node, bool quote) {
   bool oldQuote = this->quote;
   this->quote = quote;
-  depth++;
+  recursionDepth++;
   node.accept(*this);
-  depth--;
+  recursionDepth--;
   quote = oldQuote;
   return std::move(currentNode);
 }
@@ -230,7 +230,7 @@ bool Ast2IR::isSpecial(const TagNode &node) const {
   return false;
 }
 
-size_t Ast2IR::getDepth() const { return depth; }
+size_t Ast2IR::getRecursionDepth() const { return recursionDepth; }
 
 void Ast2IR::visit(const TextNode &node) { currentNode = std::make_unique<IR::StringNode>(node.value); }
 
@@ -253,9 +253,9 @@ void Ast2IR::visit(const TagNode &node) {
 }
 
 std::unique_ptr<XmlNode> IR2Ast::toAst(const IR::Node &node) {
-  depth++;
+  recursionDepth++;
   node.accept(*this);
-  depth--;
+  recursionDepth--;
   return std::move(currentNode);
 }
 
@@ -268,13 +268,13 @@ bool IR2Ast::isSpecial(const TagNode &node) const {
   return false;
 }
 
-size_t IR2Ast::getDepth() const { return depth; }
+size_t IR2Ast::getRecursionDepth() const { return recursionDepth; }
 
 void IR2Ast::visit(const IR::NullNode &) { currentNode = std::make_unique<TagNode>("null"); }
 
 void IR2Ast::visit(const IR::StringNode &node) {
   currentNode = std::make_unique<TextNode>(node.value);
-  if (getDepth() == 1) {
+  if (getRecursionDepth() == 1) {
     currentNode = std::make_unique<TagNode>("quote", std::move(currentNode));
   }
 }

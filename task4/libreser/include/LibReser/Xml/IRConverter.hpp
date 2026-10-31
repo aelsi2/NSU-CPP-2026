@@ -23,22 +23,22 @@ struct TagPattern {
 class PatternMatcher {
  public:
   virtual bool isSpecial(const TagNode &node) const = 0;
-  virtual size_t getDepth() const = 0;
+  virtual size_t getRecursionDepth() const = 0;
 };
 
 class Ast2IR : AstVisitor, PatternMatcher {
  public:
-  Ast2IR(std::span<TagPattern> patterns) : depth(0), tagPatterns(patterns) {}
+  Ast2IR(std::span<TagPattern> patterns) : tagPatterns(patterns) {}
   std::unique_ptr<IR::Node> toIR(const XmlNode &node, bool quote = false);
 
  private:
   bool isSpecial(const TagNode &node) const override;
-  size_t getDepth() const override;
+  size_t getRecursionDepth() const override;
 
   void visit(const TagNode &node) override;
   void visit(const TextNode &node) override;
 
-  size_t depth;
+  size_t recursionDepth = 0;
   bool quote = false;
   std::unique_ptr<IR::Node> currentNode = nullptr;
   std::span<TagPattern> tagPatterns;
@@ -46,12 +46,12 @@ class Ast2IR : AstVisitor, PatternMatcher {
 
 class IR2Ast : IR::Visitor, PatternMatcher {
  public:
-  IR2Ast(std::span<TagPattern> patterns) : depth(0), tagPatterns(patterns) {}
+  IR2Ast(std::span<TagPattern> patterns) : tagPatterns(patterns) {}
   std::unique_ptr<XmlNode> toAst(const IR::Node &node);
 
  private:
   bool isSpecial(const TagNode &node) const override;
-  size_t getDepth() const override;
+  size_t getRecursionDepth() const override;
 
   void visit(const IR::NullNode &node) override;
   void visit(const IR::StringNode &node) override;
@@ -63,7 +63,7 @@ class IR2Ast : IR::Visitor, PatternMatcher {
   void visit(const IR::ListNode &node) override;
   void visit(const IR::TagNode &node) override;
 
-  size_t depth;
+  size_t recursionDepth = 0;
   std::unique_ptr<XmlNode> currentNode = nullptr;
   std::span<TagPattern> tagPatterns;
 };

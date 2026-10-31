@@ -64,7 +64,7 @@ void Printer::visit(const TableNode &node) {
 
 static bool isValidBareKey(std::string_view name) {
   for (const auto ch : name) {
-    if (std::isalnum(static_cast<unsigned char>(ch))) {
+    if (std::isalnum(ch, std::locale::classic())) {
       continue;
     }
     if (ch == '_' || ch == '-') {

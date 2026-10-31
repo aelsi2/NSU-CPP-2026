@@ -1,4 +1,3 @@
-
 #include "LibReser/Json/Parser.hpp"
 
 #include <charconv>
@@ -11,7 +10,7 @@
 
 using namespace reser::json;
 using namespace reser;
-  
+
 std::unique_ptr<JsonNode> Parser::parse(std::istream &stream) {
   Parser parser(stream);
   return parser.parseNode();
@@ -19,7 +18,10 @@ std::unique_ptr<JsonNode> Parser::parse(std::istream &stream) {
 
 std::unique_ptr<JsonNode> Parser::parseNode() {
   state.skipWhitespace();
-  switch (state.peek()) {
+  if (!state.peek()) {
+    state.error("Input file cannot be empty.");
+  }
+  switch (*state.peek()) {
     case '{':
       return parseTableNode();
     case '[':
@@ -62,8 +64,8 @@ std::string Parser::parseString() {
 
   state.parseToken("\"");
   while (true) {
-    int ch = state.consume();
-    if (ch == state.Eof) {
+    auto ch = state.consume();
+    if (!ch) {
       state.error("Unterminated string.", start);
     }
     if (ch == '\"' && !lastEscape) {
@@ -74,7 +76,7 @@ std::string Parser::parseString() {
     } else {
       lastEscape = false;
     }
-    string.push_back(ch);
+    string.push_back(*ch);
   }
 
   try {
@@ -130,8 +132,8 @@ std::unique_ptr<TableNode> Parser::parseTableNode() {
   state.parseToken("{");
   state.skipWhitespace();
   while (state.peek() != '}') {
-    if (state.peek() == state.Eof) {
-        state.error("Unterminated table.", start);
+    if (!state.peek()) {
+      state.error("Unterminated table.", start);
     }
 
     Position keyStart = state.pos();
@@ -141,7 +143,7 @@ std::unique_ptr<TableNode> Parser::parseTableNode() {
     state.skipWhitespace();
     std::unique_ptr<JsonNode> value = parseNode();
     state.skipWhitespace();
-    
+
     if (tableNode->children.find(key) != tableNode->children.end()) {
       state.error("Duplicate keys in table", keyStart);
     }
@@ -166,13 +168,13 @@ std::unique_ptr<ListNode> Parser::parseListNode() {
   state.parseToken("[");
   state.skipWhitespace();
   while (state.peek() != ']') {
-    if (state.peek() == state.Eof) {
-        state.error("Unterminated list.", start);
+    if (!state.peek()) {
+      state.error("Unterminated list.", start);
     }
 
     std::unique_ptr<JsonNode> value = parseNode();
     state.skipWhitespace();
-    
+
     listNode->children.push_back(std::move(value));
 
     if (state.peek() == ',') {

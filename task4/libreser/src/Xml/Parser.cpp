@@ -16,7 +16,7 @@ std::unique_ptr<TagNode> Parser::parseDocument() {
   if (state.match2('<', '?')) {
     parseProlog();
   }
-  while (state.peek() != state.Eof) {
+  while (state.peek()) {
     state.skipWhitespace();
     if (state.match2('<', '!')) {
       parseComment();
@@ -28,7 +28,7 @@ std::unique_ptr<TagNode> Parser::parseDocument() {
 }
 
 std::unique_ptr<XmlNode> Parser::parseNode() {
-  while (state.peek() != state.Eof) {
+  while (state.peek()) {
     if (state.match2('<', '!')) {
       parseComment();
     } else if (state.match('<')) {
@@ -50,9 +50,10 @@ std::unique_ptr<TagNode> Parser::parseTagNode() {
   bool headParsed = false;
   while (!headParsed) {
     state.skipWhitespace();
-    switch (state.peek()) {
-      case ParserState::Eof:
-        state.error("Unterminated tag.", start);
+    if (!state.peek()) {
+      state.error("Unterminated tag.", start);
+    }
+    switch (*state.peek()) {
       case '/':
         state.parseToken("/>");
         return node;
@@ -109,8 +110,8 @@ void Parser::parseComment() {
 
   size_t dashCount = 0;
   while (true) {
-    int ch = state.consume();
-    if (ch == state.Eof) {
+    auto ch = state.consume();
+    if (!ch) {
       state.error("Unterminated comment.", start);
     }
     if (ch == '-') {
@@ -130,9 +131,10 @@ void Parser::parseProlog() {
   state.parseToken("<?xml");
   while (true) {
     state.skipWhitespace();
-    switch (state.peek()) {
-      case ParserState::Eof:
-        state.error("Unterminated prolog.", start);
+    if (!state.peek()) {
+      state.error("Unterminated prolog.", start);
+    }
+    switch (*state.peek()) {
       case '?':
         state.parseToken("?>");
         return;
@@ -148,22 +150,22 @@ std::string Parser::parseName() {
 
   std::string name;
 
-  if (state.peek() == state.Eof) {
+  if (!state.peek()) {
     state.error("Expected name.", start);
   }
-  if (std::isalpha(state.peek()) || state.peek() == '_' || state.peek() == ':') {
-    name.push_back(state.consume());
+  if (std::isalpha(*state.peek(), std::locale::classic()) || state.peek() == '_' || state.peek() == ':') {
+    name.push_back(*state.consume());
   } else {
     state.error("Names must start with a letter or an underscore ('_').", start);
   }
 
   while (true) {
-    int ch = state.peek();
-    if (ch == state.Eof) {
+    auto ch = state.peek();
+    if (!ch) {
       break;
     }
-    if (std::isalpha(ch) || std::isdigit(ch) || ch == '.' || ch == '_' || ch == '-' || ch == ':') {
-      name.push_back(state.consume());
+    if (std::isalnum(*ch, std::locale::classic()) || ch == '.' || ch == '_' || ch == '-' || ch == ':') {
+      name.push_back(*state.consume());
     } else {
       break;
     }

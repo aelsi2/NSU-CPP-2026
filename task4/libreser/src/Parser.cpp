@@ -2,40 +2,49 @@
 
 #include <cctype>
 #include <iostream>
+#include <stdexcept>
 
 using namespace reser;
 
-int ParserState::peek() {
-  if (stream.eof()) {
-    return Eof;
+std::optional<char> ParserState::peek() {
+  int ch = stream.peek();
+  if (stream.bad()) {
+    throw std::runtime_error("I/O error.");
   }
-  return stream.peek();
+  if (ch == std::char_traits<char>::eof()) {
+    return std::nullopt;
+  }
+  return ch;
 }
 
-int ParserState::peek2() {
-  if (stream.eof()) {
-    return Eof;
+std::optional<char> ParserState::peek2() {
+  int ch = stream.get();
+  if (stream.bad()) {
+    throw std::runtime_error("I/O error.");
   }
-  stream.get();
-  int result = stream.eof() ? Eof : stream.peek();
+  if (ch == std::char_traits<char>::eof()) {
+    stream.clear();
+    return std::nullopt;
+  }
+
+  std::optional<char> result = peek();
   stream.unget();
   return result;
 }
 
-bool ParserState::match(char ch) {
-  return peek() == ch;
-}
+bool ParserState::match(char ch) { return peek() == ch; }
 
-bool ParserState::match2(char ch1, char ch2) {
-  return peek() == ch1 && peek2() == ch2;
-}
+bool ParserState::match2(char ch1, char ch2) { return peek() == ch1 && peek2() == ch2; }
 
-int ParserState::consume() {
-  if (stream.eof()) {
-    return Eof;
-  }
-
+std::optional<char> ParserState::consume() {
   int ch = stream.get();
+  if (stream.bad()) {
+    throw std::runtime_error("I/O error.");
+  }
+  if (ch == std::char_traits<char>::eof()) {
+    stream.clear();
+    return std::nullopt;
+  }
 
   if (ch == '\n') {
     position.line += 1;
@@ -60,25 +69,23 @@ void ParserState::parseToken(std::string_view token) {
 }
 
 void ParserState::skipWhitespace(bool skipNewLine) {
-  while ((peek() != Eof && std::isspace(peek())) || (peek() == '\n' && !skipNewLine)) {
+  while ((peek() && std::isspace(*peek(), std::locale::classic())) || (peek() == '\n' && !skipNewLine)) {
     consume();
   }
 }
 
 std::string ParserState::readAnyChar(const std::string_view chars) {
   std::string result;
-  while (peek() != Eof && chars.find(peek()) != chars.npos) {
-    int ch = consume();
-    result.push_back(ch);
+  while (peek() && chars.find(*peek()) != chars.npos) {
+    result.push_back(*consume());
   }
   return result;
 }
 
 std::string ParserState::readUntilAny(const std::string_view chars) {
   std::string result;
-  while (peek() != Eof && chars.find(peek()) == chars.npos) {
-    int ch = consume();
-    result.push_back(ch);
+  while (peek() && chars.find(*peek()) == chars.npos) {
+    result.push_back(*consume());
   }
   return result;
 }

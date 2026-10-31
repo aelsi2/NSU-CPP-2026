@@ -2,6 +2,7 @@
 #define __LIBRESER_PARSER_HPP__
 
 #include <cstddef>
+#include <optional>
 #include <stdexcept>
 
 namespace reser {
@@ -15,13 +16,11 @@ class ParserState {
  public:
   ParserState(std::istream &stream) : position{0, 0}, stream(stream) {}
 
-  static constexpr int Eof = -1;
-
-  int peek();
-  int peek2();
+  std::optional<char> peek();
+  std::optional<char> peek2();
   bool match(char ch);
   bool match2(char ch1, char ch2);
-  int consume();
+  std::optional<char> consume();
   const Position &pos() const { return position; }
 
   void parseToken(std::string_view token);

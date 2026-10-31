@@ -32,7 +32,7 @@ class TextNode : public XmlNodeImpl<TextNode, XmlNodeType::Text> {
 
   bool isSpace() const {
     for (const char &ch : value) {
-      if (!std::isspace(ch)) {
+      if (!std::isspace(ch, std::locale::classic())) {
         return false;
       }
     }

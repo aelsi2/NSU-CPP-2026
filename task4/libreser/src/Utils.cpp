@@ -1,5 +1,6 @@
 #include "LibReser/Utils.hpp"
 
+#include <locale>
 #include <map>
 
 using namespace reser;
@@ -117,12 +118,12 @@ bool reser::isValidXmlName(const std::string_view string) {
   if (string.empty()) {
     return false;
   }
-  if (!std::isalpha(string[0]) && string[0] != '_' && string[0] != ':') {
+  if (!std::isalpha(string[0], std::locale::classic()) && string[0] != '_' && string[0] != ':') {
     return false;
   }
   for (auto iter = std::next(string.begin()); iter != string.end(); iter++) {
     char ch = *iter;
-    if (std::isalpha(ch) || std::isdigit(ch) || ch == '.' || ch == '_' || ch == '-' || ch == ':') {
+    if (std::isalnum(ch, std::locale::classic()) || ch == '.' || ch == '_' || ch == '-' || ch == ':') {
       continue;
     }
     return false;

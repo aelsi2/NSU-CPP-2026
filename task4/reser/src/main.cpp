@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     std::cerr << "Parse error at line " << (err.pos().line + 1) << ", column " << (err.pos().column + 1) << ":\n"
               << err.what() << "\n";
     return 1;
-  } catch (const std::runtime_error &err) {
+  } catch (const std::exception &err) {
     std::cerr << "Unexpected error: " << err.what() << "\n";
     return 1;
   } catch (...) {

@@ -81,7 +81,7 @@ bool DateTime::tryParseTime(std::istringstream &stream, bool hasFraction) {
 
   if (stream >> std::chrono::parse("%T", time) && time < std::chrono::hours(24)) {
     if (hasFraction) {
-      while (stream.peek() != std::char_traits<char>::eof() && std::isdigit(stream.peek())) {
+      while (stream.peek() != std::char_traits<char>::eof() && std::isdigit(stream.peek(), std::locale::classic())) {
         stream.get();
       }
     }

@@ -78,24 +78,7 @@ std::unique_ptr<TagNode> Parser::parseTagNode() {
     node->children.push_back(parseNode());
   }
 
-  if (node->children.size() > 1) {
-    bool allSpace = true;
-    for (const auto &child : node->children) {
-      if (child->isa<TextNode>() && !child->as<TextNode>()->isSpace()) {
-        allSpace = false;
-        break;
-      }
-    }
-    if (allSpace) {
-      for (auto iter = node->children.begin(); iter != node->children.end();) {
-        if ((*iter)->isa<TextNode>()) {
-          iter = node->children.erase(iter);
-        } else {
-          iter++;
-        }
-      }
-    }
-  }
+  node->normalize();
 
   state.parseToken("</");
   state.skipWhitespace();

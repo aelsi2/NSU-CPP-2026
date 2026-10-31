@@ -48,10 +48,16 @@ class TagNode : public XmlNodeImpl<TagNode, XmlNodeType::Tag> {
   using AttrMap = std::unordered_map<std::string, std::string>;
 
   TagNode(std::string name, ChildVector children, AttrMap attributes)
-      : name(std::move(name)), children(std::move(children)), attributes(std::move(attributes)) {}
+      : name(std::move(name)), children(std::move(children)), attributes(std::move(attributes)) {
+    normalize();
+  }
+  TagNode(std::string name, ChildVector children) : name(std::move(name)), children(std::move(children)) {
+    normalize();
+  }
   TagNode(std::string name) : name(std::move(name)) {}
   TagNode(std::string name, std::unique_ptr<XmlNode> child) : name(std::move(name)) {
     children.push_back(std::move(child));
+    normalize();
   }
 
   size_t nAttributes() const { return attributes.size(); }
@@ -74,6 +80,32 @@ class TagNode : public XmlNodeImpl<TagNode, XmlNodeType::Tag> {
       }
     }
     return false;
+  }
+
+  void normalize() {
+    if (children.size() > 1) {
+      bool allSpace = true;
+      for (const auto &child : children) {
+        if (child->isa<TextNode>() && !child->as<TextNode>()->isSpace()) {
+          allSpace = false;
+          break;
+        }
+      }
+      if (allSpace) {
+        for (auto iter = children.begin(); iter != children.end();) {
+          if ((*iter)->isa<TextNode>()) {
+            iter = children.erase(iter);
+          } else {
+            iter++;
+          }
+        }
+      }
+    }
+    if (children.size() == 1 && getChild<TextNode>()) {
+      if (getChild<TextNode>()->value.empty()) {
+        children.clear();
+      }
+    }
   }
 
   std::string name;

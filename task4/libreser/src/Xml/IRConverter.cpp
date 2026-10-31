@@ -296,30 +296,30 @@ void IR2Ast::visit(const IR::DateTimeNode &node) {
 }
 
 void IR2Ast::visit(const IR::ListNode &node) {
-  auto tag = std::make_unique<TagNode>("list");
+  TagNode::ChildVector children;
   for (auto &child : node.children) {
     auto element = std::make_unique<TagNode>("element", toAst(*child));
-    tag->children.push_back(std::move(element));
+    children.push_back(std::move(element));
   }
-  currentNode = std::move(tag);
+  currentNode = std::make_unique<TagNode>("list", std::move(children));
 }
 
 void IR2Ast::visit(const IR::TableNode &node) {
-  auto tag = std::make_unique<TagNode>("table");
+  TagNode::ChildVector children;
   for (auto &kvp : node.children) {
     auto element = std::make_unique<TagNode>("element", toAst(*(kvp.second)));
     element->attributes["key"] = kvp.first;
-    tag->children.push_back(std::move(element));
+    children.push_back(std::move(element));
   }
-  currentNode = std::move(tag);
+  currentNode = std::make_unique<TagNode>("table", std::move(children));
 }
 
 void IR2Ast::visit(const IR::TagNode &node) {
-  auto tag = std::make_unique<TagNode>(node.name);
+  TagNode::ChildVector children;
   for (const auto &child : node.children) {
-    tag->children.push_back(toAst(*child));
+    children.push_back(toAst(*child));
   }
-  tag->attributes = node.attributes;
+  auto tag = std::make_unique<TagNode>(node.name, std::move(children), node.attributes);
 
   if (isSpecial(*tag)) {
     tag = std::make_unique<TagNode>("quote", std::move(tag));

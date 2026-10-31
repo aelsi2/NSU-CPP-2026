@@ -3,17 +3,23 @@
 
 #include <algorithm>
 #include <concepts>
-
+#include <type_traits>
 namespace reser {
 
 template <typename AstNodeType, typename Visitor>
 class AstNode;
 
 template <typename T, typename AstNodeType, typename AstVisitor>
-concept IsAstNode = requires {
+concept IsAstConcreteNode = requires {
   { T::Type } -> std::same_as<const AstNodeType &>;
   requires std::derived_from<T, AstNode<AstNodeType, AstVisitor>>;
 };
+
+template <typename T, typename AstNodeType, typename AstVisitor>
+concept IsAstBaseNode = std::derived_from<AstNode<AstNodeType, AstVisitor>, T>;
+
+template <typename T, typename AstNodeType, typename AstVisitor>
+concept IsAstNode = IsAstBaseNode<T, AstNodeType, AstVisitor> || IsAstConcreteNode<T, AstNodeType, AstVisitor>;
 
 template <typename AstNodeType, typename AstVisitor>
 class AstNode {
@@ -23,7 +29,11 @@ class AstNode {
 
   template <IsAstNode<AstNodeType, AstVisitor> T>
   inline bool isa() const {
-    return type() == T::Type;
+    if constexpr (std::is_same_v<T, AstNode<AstNodeType, AstVisitor>>) {
+      return true;
+    } else {
+      return type() == T::Type;
+    }
   }
 
   template <IsAstNode<AstNodeType, AstVisitor> T>

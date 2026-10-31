@@ -1,22 +1,47 @@
 #include <iostream>
-
 #include <stdexcept>
-#include "LibReser/Json/IRConverter.hpp"
-#include "LibReser/Json/Parser.hpp"
-#include "LibReser/Json/Printer.hpp"
-#include "LibReser/Xml/Parser.hpp"
-#include "LibReser/Xml/Printer.hpp"
-#include "LibReser/Parser.hpp"
 
-int main(/*int argc, char **argv*/) {
+#include "LibReser/Format.hpp"
+#include "LibReser/Json/Backend.hpp"
+#include "LibReser/Parser.hpp"
+#include "LibReser/Xml/Backend.hpp"
+
+using namespace reser;
+
+static std::unordered_map<std::string, FormatBackend &> Backends = {
+    {"json", json::Backend},
+    {"xml", xml::Backend},
+};
+
+static void printFormats(std::ostream &stream) {
+  stream << "Available formats:\n";
+  for (const auto &kvp : Backends) {
+    stream << kvp.first << "\n";
+  }
+}
+
+int main(int argc, char **argv) {
   try {
-    auto node = reser::xml::Parser::parse(std::cin);
-    reser::xml::Printer::print(std::cout, *node);
-    //auto node = reser::json::Parser::parse(std::cin);
-    //auto irNode = reser::json::IRConverter::toIR(*node);
-    //auto newNode = reser::json::IRConverter::fromIR(*irNode);
-    //reser::json::Printer::print(std::cout, *newNode);
-    //std::cout << '\n';
+    if (argc != 3) {
+      std::cerr << "Usage: " << argv[0] << " <in-format> <out-format>\n";
+      return 1;
+    }
+    auto inFormat = Backends.find(argv[1]);
+    if (inFormat == Backends.end()) {
+      std::cerr << "Unknown in-format: " << argv[1] << "\n";
+      printFormats(std::cerr);
+      return 1;
+    }
+    auto outFormat = Backends.find(argv[2]);
+    if (outFormat == Backends.end()) {
+      std::cerr << "Unknown out-format: " << argv[2] << "\n";
+      printFormats(std::cerr);
+      return 1;
+    }
+
+    auto node = inFormat->second.fromStream(std::cin);
+    outFormat->second.toStream(std::cout, *node);
+    std::cout << '\n';
   } catch (const reser::ParseError &err) {
     std::cerr << "Parse error at line " << (err.pos().line + 1) << ", column " << (err.pos().column + 1) << ":\n"
               << err.what() << "\n";

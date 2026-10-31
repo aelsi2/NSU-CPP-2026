@@ -46,6 +46,7 @@ class TableNode : public NodeImpl<TableNode> {
   using ChildMap = std::unordered_map<std::string, std::unique_ptr<Node>>;
 
   TableNode(ChildMap map) : children(std::move(map)) {}
+  TableNode() = default;
 
   ChildMap children;
 };
@@ -55,6 +56,7 @@ class ListNode : public NodeImpl<ListNode> {
   using ChildVector = std::vector<std::unique_ptr<Node>>;
 
   ListNode(ChildVector vector) : children(std::move(vector)) {}
+  ListNode() = default;
 
   ChildVector children;
 };
@@ -66,6 +68,7 @@ class TagNode : public NodeImpl<TagNode> {
 
   TagNode(std::string name, ChildVector children, AttrMap attributes)
       : name(std::move(name)), children(std::move(children)), attributes(std::move(attributes)) {}
+  TagNode(std::string name) : name(std::move(name)) {}
 
   std::string name;
   ChildVector children;

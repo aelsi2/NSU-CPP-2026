@@ -109,7 +109,15 @@ std::unique_ptr<TagNode> Parser::parseTagNode() {
   return node;
 }
 
-std::unique_ptr<TextNode> Parser::parseTextNode() { return std::make_unique<TextNode>(state.readUntilAny("<")); }
+std::unique_ptr<TextNode> Parser::parseTextNode() {
+  Position start = state.pos();
+  std::string text = state.readUntilAny("<");
+  try {
+    return std::make_unique<TextNode>(xmlUnescape(text));
+  } catch (const EscapeError &error) {
+    state.error("Invalid escape code in text.", start);
+  }
+}
 
 void Parser::parseComment() {
   Position start = state.pos();
@@ -192,10 +200,15 @@ std::pair<std::string, std::string> Parser::parseAttribute() {
 
 std::string Parser::parseString() {
   Position start = state.pos();
-
-  state.parseToken("\"");
-  std::string string = state.readUntilAny("\"");
-  state.parseToken("\"");
+  const char *terminator;
+  if (state.match('\'')) {
+    terminator = "'";
+  } else {
+    terminator = "\"";
+  }
+  state.parseToken(terminator);
+  std::string string = state.readUntilAny(terminator);
+  state.parseToken(terminator);
 
   try {
     return xmlUnescape(string);

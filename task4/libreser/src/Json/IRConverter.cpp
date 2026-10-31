@@ -7,7 +7,7 @@ using namespace reser::json::detail;
 using namespace reser::json;
 using namespace reser;
 
-static std::vector<TablePattern> tablePatterns = {
+static std::vector<TablePattern> tagPatterns = {
     {
         .match =
             [](const TableNode &node, const PatternMatcher &matcher) {
@@ -243,11 +243,11 @@ void IR2Ast::visit(const IR::TagNode &node) {
 }
 
 std::unique_ptr<JsonNode> IRConverter::fromIR(const IR::Node &node) {
-  IR2Ast converter(tablePatterns);
+  IR2Ast converter(tagPatterns);
   return converter.toAst(node);
 }
 
 std::unique_ptr<IR::Node> IRConverter::toIR(const JsonNode &node) {
-  Ast2IR converter(tablePatterns);
+  Ast2IR converter(tagPatterns);
   return converter.toIR(node);
 }

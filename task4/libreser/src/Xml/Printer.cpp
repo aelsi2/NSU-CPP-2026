@@ -10,13 +10,14 @@ void Printer::print(std::ostream &stream, const XmlNode &node) {
   node.accept(printer);
 }
 
-void Printer::visit(const TextNode &node) { stream << xmlEscape(node.value); }
+void Printer::visit(const TextNode &node) { stream << xmlEscape(node.value, XmlEscapeContext::Text); }
+
 void Printer::visit(const TagNode &node) {
   printIndent();
   stream << "<" << node.name;
 
   for (const auto &attr : node.attributes) {
-    stream << " " << attr.first << "=\"" << xmlEscape(attr.second) << "\"";
+    stream << " " << attr.first << "=\"" << xmlEscape(attr.second, XmlEscapeContext::Attribute) << "\"";
   }
   if (node.children.empty()) {
     stream << "/>";

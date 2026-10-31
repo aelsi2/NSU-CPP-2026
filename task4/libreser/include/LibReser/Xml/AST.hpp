@@ -50,6 +50,22 @@ class TagNode : public XmlNodeImpl<TagNode, XmlNodeType::Tag> {
   TagNode(std::string name, ChildVector children, AttrMap attributes)
       : name(std::move(name)), children(std::move(children)), attributes(std::move(attributes)) {}
   TagNode(std::string name) : name(std::move(name)) {}
+  TagNode(std::string name, std::unique_ptr<XmlNode> child) : name(std::move(name)) {
+    children.push_back(std::move(child));
+  }
+
+  size_t nAttributes() const { return attributes.size(); }
+  size_t nChildren() const { return children.size(); }
+
+  template <IsXmlNode T>
+  const T *getChild() const {
+    return children.empty() ? nullptr : children[0]->as<T>();
+  }
+
+  template <XmlNode>
+  const XmlNode *getChild() const {
+    return children.empty() ? nullptr : &*children[0];
+  }
 
   bool hasText() const {
     for (const auto &child : children) {

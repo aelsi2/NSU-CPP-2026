@@ -4,6 +4,7 @@
 #include <charconv>
 #include <cmath>
 #include <initializer_list>
+#include <iostream>
 
 #include "LibReser/Parser.hpp"
 #include "LibReser/Utils.hpp"
@@ -68,7 +69,7 @@ std::string Parser::parseString() {
     if (ch == '\"' && !lastEscape) {
       break;
     }
-    if (ch == '\"') {
+    if (ch == '\\' && !lastEscape) {
       lastEscape = true;
     } else {
       lastEscape = false;

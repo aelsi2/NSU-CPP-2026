@@ -2,7 +2,7 @@
 
 #include "LibReser/IR.hpp"
 #include "LibReser/Json/AST.hpp"
-
+#include "LibReser/Utils.hpp"
 using namespace reser::json::detail;
 using namespace reser::json;
 using namespace reser;
@@ -28,18 +28,30 @@ static std::vector<TablePattern> tagPatterns = {
               auto attributes = node.getValue<TableNode>("attributes");
               auto children = node.getValue<ListNode>("children");
 
-              bool attributesAreStrings = true;
-              if (attributes) {
-                for (auto &attr : attributes->children) {
-                  if (!attr.second->as<StringNode>()) {
-                    attributesAreStrings = false;
-                    break;
-                  }
+              if (node.nValues() != 4) {
+                return false;
+              }
+              if (!type || type->value != "tag") {
+                return false;
+              }
+              if (!name || !isValidXmlName(name->value)) {
+                return false;
+              }
+              if (!children) {
+                return false;
+              }
+              if (!attributes) {
+                return false;
+              }
+              for (auto &attr : attributes->children) {
+                if (!attr.second->as<StringNode>()) {
+                  return false;
+                }
+                if (!isValidXmlName(attr.second->as<StringNode>()->value)) {
+                  return false;
                 }
               }
-
-              return node.nValues() == 4 && name && type && type->value == "tag" && children && attributes &&
-                     attributesAreStrings;
+              return true;
             },
         .apply = [](const TableNode &node, Ast2IR &converter) -> std::unique_ptr<IR::Node> {
           auto nameNode = node.getValue<StringNode>("name");

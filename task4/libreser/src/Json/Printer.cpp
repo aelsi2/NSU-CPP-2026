@@ -8,6 +8,7 @@ using namespace reser;
 void Printer::print(std::ostream &stream, const JsonNode &node) {
   Printer printer(stream);
   node.accept(printer);
+  stream << "\n";
 }
 
 void Printer::visit(const NullNode &) { stream << "null"; }

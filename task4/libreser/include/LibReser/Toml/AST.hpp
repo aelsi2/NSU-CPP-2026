@@ -15,6 +15,13 @@ namespace toml {
 
 class AstVisitor;
 
+struct TomlPath {
+  TomlPath() {}
+  TomlPath(std::string string) { elements.push_back(std::move(string)); }
+
+  std::vector<std::string> elements;
+};
+
 enum class TomlNodeType {
   String,
   Int,
@@ -42,16 +49,6 @@ using FloatNode = TomlPrimitiveNode<double, TomlNodeType::Float>;
 using BoolNode = TomlPrimitiveNode<bool, TomlNodeType::Bool>;
 using DateTimeNode = TomlPrimitiveNode<DateTime, TomlNodeType::DateTime>;
 
-class ListNode : public TomlNodeImpl<ListNode, TomlNodeType::List> {
- public:
-  using ChildVector = std::vector<std::unique_ptr<TomlNode>>;
-
-  ListNode() {}
-  ListNode(ChildVector children) : children(std::move(children)) {}
-
-  ChildVector children;
-};
-
 class TableNode : public TomlNodeImpl<TableNode, TomlNodeType::Table> {
  public:
   using ChildMap = std::unordered_map<std::string, std::unique_ptr<TomlNode>>;
@@ -68,6 +65,29 @@ class TableNode : public TomlNodeImpl<TableNode, TomlNodeType::Table> {
 
   ChildMap children;
 };
+
+class ListNode : public TomlNodeImpl<ListNode, TomlNodeType::List> {
+ public:
+  using ChildVector = std::vector<std::unique_ptr<TomlNode>>;
+
+  ListNode() {}
+  ListNode(ChildVector children) : children(std::move(children)) {}
+
+  bool isOfTables() const {
+    if (children.empty()) {
+      return false;
+    }
+    for (const auto &child : children) {
+      if (!child->isa<TableNode>()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  ChildVector children;
+};
+
 
 class AstVisitor {
  public:

@@ -43,7 +43,6 @@ int main(int argc, char **argv) {
 
     auto node = inFormat->second.fromStream(std::cin);
     outFormat->second.toStream(std::cout, *node);
-    std::cout << '\n';
   } catch (const reser::ParseError &err) {
     std::cerr << "Parse error at line " << (err.pos().line + 1) << ", column " << (err.pos().column + 1) << ":\n"
               << err.what() << "\n";

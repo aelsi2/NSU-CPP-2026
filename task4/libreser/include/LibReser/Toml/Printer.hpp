@@ -22,8 +22,13 @@ class Printer : AstVisitor {
   void visit(const ListNode &node) override;
   void visit(const TableNode &node) override;
 
+  void printDocument(const TomlNode &node);
+  void printSection(const TomlPath &path, const TableNode &node, bool arrayElement = false);
+  void printSectionHeader(const TomlPath &path, bool arrayElement = false);
   void printKey(std::string_view key);
+  void printKvp(std::string_view key, const TomlNode &value);
   void printIndent();
+
 
   std::ostream &stream;
   size_t indentLevel;

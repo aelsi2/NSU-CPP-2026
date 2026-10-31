@@ -7,7 +7,101 @@ using namespace reser;
 
 void Printer::print(std::ostream &stream, const TomlNode &node) {
   Printer printer(stream);
-  node.accept(printer);
+  printer.printDocument(node);
+}
+
+void Printer::printDocument(const TomlNode &node) {
+  Printer printer(stream);
+  const TableNode *table = node.as<TableNode>();
+  if (table) {
+    printSection(TomlPath(), *table);
+  } else {
+    throw std::logic_error("Invalid TOML root node.");
+  }
+}
+
+void Printer::printSection(const TomlPath &path, const TableNode &node, bool arrayElement) {
+  printSectionHeader(path, arrayElement);
+
+  bool printedAnyLines = false;
+
+  // plain values
+  for (const auto &kvp : node.children) {
+    if (kvp.second->isa<TableNode>()) {
+      continue;
+    }
+    if (auto list = kvp.second->as<ListNode>()) {
+      if (list->isOfTables()) {
+        continue;
+      }
+    }
+
+    printKvp(kvp.first, *kvp.second);
+    stream << "\n";
+    printedAnyLines = true;
+  }
+
+  // nested sections
+  TomlPath nextPath = path;
+  nextPath.elements.push_back("");
+  for (const auto &kvp : node.children) {
+    if (!kvp.second->isa<TableNode>()) {
+      continue;
+    }
+
+    nextPath.elements.pop_back();
+    nextPath.elements.push_back(kvp.first);
+
+    if (printedAnyLines) {
+      stream << "\n";
+    } else {
+      printedAnyLines = true;
+    }
+    printSection(nextPath, *kvp.second->as<TableNode>());
+  }
+
+  // nested array sections
+  for (const auto &kvp : node.children) {
+    if (!kvp.second->isa<ListNode>()) {
+      continue;
+    }
+    if (!kvp.second->as<ListNode>()->isOfTables()) {
+      continue;
+    }
+
+    nextPath.elements.pop_back();
+    nextPath.elements.push_back(kvp.first);
+
+    for (const auto &item : kvp.second->as<ListNode>()->children) {
+      if (printedAnyLines) {
+        stream << "\n";
+      } else {
+        printedAnyLines = true;
+      }
+      printSection(nextPath, *item->as<TableNode>(), true);
+    }
+  }
+}
+
+void Printer::printSectionHeader(const TomlPath &path, bool array) {
+  if (path.elements.empty()) {
+    return;
+  }
+  if (array) {
+    stream << "[[";
+  } else {
+    stream << "[";
+  }
+  printKey(path.elements[0]);
+  for (auto iter = std::next(path.elements.begin()); iter != path.elements.end(); iter++) {
+    stream << ".";
+    printKey(*iter);
+  }
+  if (array) {
+    stream << "]]\n";
+  } else {
+    stream << "]\n";
+  }
 }
 
 void Printer::visit(const StringNode &node) { stream << "\"" << tomlEscape(node.value) << "\""; }
@@ -45,16 +139,14 @@ void Printer::visit(const TableNode &node) {
   indentLevel++;
   auto &kvp = *node.children.begin();
   printIndent();
-  printKey(kvp.first);
-  stream << " = ";
-  kvp.second->accept(*this);
+  printKvp(kvp.first, *kvp.second);
+  stream << "\n";
   for (auto iter = std::next(node.children.begin()); iter != node.children.end(); iter++) {
     stream << ",\n";
     auto &kvp = *iter;
     printIndent();
-    printKey(kvp.first);
-    stream << " = ";
-    kvp.second->accept(*this);
+    printKvp(kvp.first, *kvp.second);
+    stream << "\n";
   }
   stream << "\n";
   indentLevel--;
@@ -81,6 +173,12 @@ void Printer::printKey(std::string_view string) {
   } else {
     stream << "\"" << tomlEscape(string) << "\"";
   }
+}
+
+void Printer::printKvp(std::string_view key, const TomlNode &value) {
+  printKey(key);
+  stream << " = ";
+  value.accept(*this);
 }
 
 void Printer::printIndent() {

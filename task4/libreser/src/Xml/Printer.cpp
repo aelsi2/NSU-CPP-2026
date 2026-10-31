@@ -8,6 +8,7 @@ using namespace reser;
 void Printer::print(std::ostream &stream, const XmlNode &node) {
   Printer printer(stream);
   node.accept(printer);
+  stream << "\n";
 }
 
 void Printer::visit(const TextNode &node) { stream << xmlEscape(node.value, XmlEscapeContext::Text); }

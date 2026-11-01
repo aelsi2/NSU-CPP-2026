@@ -20,12 +20,13 @@ class Parser {
   std::unique_ptr<TableNode> parseDocument();
   void parseSection(TableNode &section);
   TomlPath parseSectionHeader();
-  
+
   std::unique_ptr<TomlNode> parseInlineNode();
   std::unique_ptr<StringNode> parseStringNode();
-  std::unique_ptr<TomlNode> parseIntOrFloatNode();
   std::unique_ptr<BoolNode> parseTrueNode();
   std::unique_ptr<BoolNode> parseFalseNode();
+  std::unique_ptr<TomlNode> parseNumberOrDateNode();
+  std::unique_ptr<IntNode> parseBaseIntegerNode();
   std::unique_ptr<TableNode> parseTableNode();
   std::unique_ptr<ListNode> parseListNode();
 

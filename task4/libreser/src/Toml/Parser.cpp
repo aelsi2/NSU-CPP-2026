@@ -3,7 +3,7 @@
 #include <charconv>
 #include <cmath>
 #include <initializer_list>
-#include <iostream>
+#include <locale>
 
 #include "LibReser/Parser.hpp"
 #include "LibReser/Utils.hpp"
@@ -52,7 +52,9 @@ void Parser::parseSection(TableNode &section) {
       state.error("Conflicting key in section.", keyStart);
     }
 
-    parseLineEnd();
+    if (!parseLineEnd()) {
+      state.error("Section key/value pairs must be on separate lines.");
+    }
   }
 }
 
@@ -104,9 +106,14 @@ std::unique_ptr<TomlNode> Parser::parseInlineNode() {
       return parseTrueNode();
     case 'f':
       return parseFalseNode();
+    case '0':
+      if (state.match2('0', 'x') || state.match2('0', 'X') || state.match2('0', 'b') || state.match2('0', 'B') ||
+          state.match2('0', 'o') || state.match2('0', 'O')) {
+        return parseBaseIntegerNode();
+      }
+      [[fallthrough]];
     case '+':
     case '-':
-    case '0':
     case '1':
     case '2':
     case '3':
@@ -116,39 +123,13 @@ std::unique_ptr<TomlNode> Parser::parseInlineNode() {
     case '7':
     case '8':
     case '9':
-      return parseIntOrFloatNode();
+      return parseNumberOrDateNode();
     default:
       state.unexpectedToken({"{", "[", "null", "true", "false", "number", "string"});
   }
 }
 
 std::unique_ptr<StringNode> Parser::parseStringNode() { return std::make_unique<StringNode>(parseString()); }
-
-std::unique_ptr<TomlNode> Parser::parseIntOrFloatNode() {
-  Position start = state.pos();
-
-  std::string stringNum = state.readAnyChar("0123456789-+.eE");
-  const char *stringNumStart = stringNum.data();
-  const char *stringNumEnd = stringNum.data() + stringNum.size();
-
-  {
-    int64_t value = 0;
-    auto [ptr, ec] = std::from_chars(stringNumStart, stringNumEnd, value);
-    if (ec == std::errc() && ptr == stringNumEnd) {
-      return std::make_unique<IntNode>(value);
-    }
-  }
-
-  {
-    double value = 0.0;
-    auto [ptr, ec] = std::from_chars(stringNumStart, stringNumEnd, value);
-    if (ec == std::errc() && ptr == stringNumEnd && !std::isnan(value) && !std::isinf(value)) {
-      return std::make_unique<FloatNode>(value);
-    }
-  }
-
-  state.error("Invalid number.", start);
-}
 
 std::unique_ptr<BoolNode> Parser::parseTrueNode() {
   state.parseToken("true");
@@ -158,6 +139,123 @@ std::unique_ptr<BoolNode> Parser::parseTrueNode() {
 std::unique_ptr<BoolNode> Parser::parseFalseNode() {
   state.parseToken("false");
   return std::make_unique<BoolNode>(false);
+}
+
+static std::optional<double> asDouble(std::string_view string) {
+  double value = 0.0;
+  auto [ptr, ec] = std::from_chars(string.begin(), string.end(), value);
+  if (ec == std::errc() && ptr == string.end() && !std::isnan(value) && !std::isinf(value)) {
+    return value;
+  }
+  return std::nullopt;
+}
+
+static std::optional<int64_t> asInt(std::string_view string, int base = 10) {
+  int64_t value = 0.0;
+  auto [ptr, ec] = std::from_chars(string.begin(), string.end(), value, base);
+  if (ec == std::errc() && ptr == string.end() && !std::isnan(value) && !std::isinf(value)) {
+    return value;
+  }
+  return std::nullopt;
+}
+
+static bool removeNumberUnderscores(std::string &string) {
+  bool lastIsDigit = false;
+  bool lastIsUnderscore = false;
+  for (auto iter = string.begin(); iter != string.end();) {
+    if (std::isdigit(*iter, std::locale::classic())) {
+      lastIsDigit = true;
+      lastIsUnderscore = false;
+    }
+    if (*iter == '_') {
+      if (!lastIsDigit) {
+        return false;
+      }
+      lastIsDigit = false;
+      lastIsUnderscore = true;
+      iter = string.erase(iter);
+      continue;
+    }
+    iter++;
+  }
+  return !lastIsUnderscore;
+}
+
+std::unique_ptr<IntNode> Parser::parseBaseIntegerNode() {
+  Position start = state.pos();
+
+  std::string string = state.readAnyChar("0123456789aAbBcCdDeEfF_xXoObB");
+
+  if (!removeNumberUnderscores(string)) {
+    state.error("A number cannot contain two consecutive underscores ('_').", start);
+  }
+
+  if (string.starts_with("0x") || string.starts_with("0X")) {
+    string.erase(0, 2);
+    if (auto integer = asInt(string, 16)) {
+      return std::make_unique<IntNode>(*integer);
+    }
+    state.error("Invalid hexadecimal integer.", start);
+  }
+  if (string.starts_with("0o") || string.starts_with("0O")) {
+    string.erase(0, 2);
+    if (auto integer = asInt(string, 8)) {
+      return std::make_unique<IntNode>(*integer);
+    }
+    state.error("Invalid octal integer.", start);
+  }
+  if (string.starts_with("0b") || string.starts_with("0B")) {
+    string.erase(0, 2);
+    if (auto integer = asInt(string, 2)) {
+      return std::make_unique<IntNode>(*integer);
+    }
+    state.error("Invalid binary integer.", start);
+  }
+  state.error("Invalid integer.", start);
+}
+
+std::unique_ptr<TomlNode> Parser::parseNumberOrDateNode() {
+  Position start = state.pos();
+
+  std::string string = state.readAnyChar("0123456789_+-.eEtTzZ:");
+  if (state.peek() == ' ' && state.peek2() && std::isdigit(*state.peek2(), std::locale::classic())) {
+    string.push_back(*state.consume());
+    string.append(state.readAnyChar("0123456789+-zZ:"));
+  }
+
+  bool hasDecimalPoint = string.find(".") != std::string::npos;
+  bool hasExponent = string.find_first_of("eE") != std::string::npos;
+
+  bool hasDate = std::count(string.begin(), string.end(), '-') == 2 && !hasExponent;
+  bool hasTime = string.find(":") != std::string::npos;
+
+  if (hasDate || hasTime) {
+    DateTime dateTime;
+    if (DateTime::tryFromString(string, dateTime)) {
+      return std::make_unique<DateTimeNode>(dateTime);
+    }
+    state.error("Invalid date/time.", start);
+  }
+
+  if (!removeNumberUnderscores(string)) {
+    state.error("A number cannot contain two consecutive underscores ('_').", start);
+  }
+
+  if (string.starts_with('+')) {
+    string.erase(0, 1);
+  }
+
+  if (hasExponent || hasDecimalPoint) {
+    if (auto floatNum = asDouble(string)) {
+      return std::make_unique<FloatNode>(*floatNum);
+    }
+    state.error("Invalid floating point number.", start);
+  }
+
+  if (auto intNum = asInt(string)) {
+    return std::make_unique<IntNode>(*intNum);
+  }
+  state.error("Invalid decimal integer.", start);
 }
 
 std::unique_ptr<TableNode> Parser::parseTableNode() {

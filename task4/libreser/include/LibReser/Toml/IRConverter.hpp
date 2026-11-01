@@ -33,7 +33,7 @@ class Ast2IR : AstVisitor, PatternMatcher {
 
  private:
   bool isSpecial(const TableNode &node) const override;
-  size_t getRecursionDepth() const override;
+  size_t getRecursionDepth() const override { return recursionDepth; }
 
   void visit(const StringNode &node) override;
   void visit(const IntNode &node) override;
@@ -56,7 +56,7 @@ class IR2Ast : IR::Visitor, PatternMatcher {
 
  private:
   bool isSpecial(const TableNode &node) const override;
-  size_t getRecursionDepth() const override;
+  size_t getRecursionDepth() const override { return recursionDepth; }
 
   std::unique_ptr<TableNode> quoteNode(std::unique_ptr<TomlNode> node);
   std::unique_ptr<TomlNode> quoteIfTopLevel(std::unique_ptr<TomlNode> node);

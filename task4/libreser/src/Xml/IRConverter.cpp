@@ -10,11 +10,28 @@ using namespace reser::xml::detail;
 using namespace reser::xml;
 using namespace reser;
 
+namespace reser::xml::token {
+namespace {
+constexpr std::string_view Quote = "quote";
+constexpr std::string_view Int = "int";
+constexpr std::string_view Float = "float";
+constexpr std::string_view Bool = "bool";
+constexpr std::string_view True = "true";
+constexpr std::string_view False = "false";
+constexpr std::string_view List = "list";
+constexpr std::string_view Element = "element";
+constexpr std::string_view Table = "table";
+constexpr std::string_view Key = "key";
+constexpr std::string_view Null = "null";
+constexpr std::string_view Time = "time";
+};  // namespace
+};  // namespace reser::xml::token
+
 static std::vector<TagPattern> tagPatterns = {
     {
         .match =
             [](const TagNode &node, const PatternMatcher &matcher) {
-              if (node.name != "quote") {
+              if (node.name != token::Quote) {
                 return false;
               }
               if (node.nAttributes() != 0) {
@@ -36,7 +53,7 @@ static std::vector<TagPattern> tagPatterns = {
     {
         .match =
             [](const TagNode &node, const PatternMatcher &) {
-              return node.name == NullString && node.nAttributes() == 0 && node.nChildren() == 0;
+              return node.name == token::Null && node.nAttributes() == 0 && node.nChildren() == 0;
             },
         .apply = [](const TagNode &, Ast2IR &) -> std::unique_ptr<IR::Node> {
           return std::make_unique<IR::NullNode>();
@@ -45,7 +62,7 @@ static std::vector<TagPattern> tagPatterns = {
     {
         .match =
             [](const TagNode &node, const PatternMatcher &) {
-              if (node.name != "int" || node.nAttributes() != 0 || node.nChildren() != 1) {
+              if (node.name != token::Int || node.nAttributes() != 0 || node.nChildren() != 1) {
                 return false;
               }
               if (auto child = node.getChild<TextNode>()) {
@@ -75,12 +92,12 @@ static std::vector<TagPattern> tagPatterns = {
     {
         .match =
             [](const TagNode &node, const PatternMatcher &) {
-              if (node.name != "float" || node.nAttributes() != 0 || node.nChildren() != 1) {
+              if (node.name != token::Float || node.nAttributes() != 0 || node.nChildren() != 1) {
                 return false;
               }
               if (auto child = node.getChild<TextNode>()) {
-                if (child->value == PositiveInfString || child->value == NegativeInfString ||
-                    child->value == NanString) {
+                if (child->value == ctoken::PositiveInf || child->value == ctoken::NegativeInf ||
+                    child->value == ctoken::NaN) {
                   return true;
                 }
                 const char *stringNumStart = child->value.data();
@@ -95,13 +112,13 @@ static std::vector<TagPattern> tagPatterns = {
             },
         .apply = [](const TagNode &node, Ast2IR &) -> std::unique_ptr<IR::Node> {
           if (auto child = node.getChild<TextNode>()) {
-            if (child->value == PositiveInfString) {
+            if (child->value == ctoken::PositiveInf) {
               return std::make_unique<IR::FloatNode>(std::numeric_limits<double>::infinity());
             }
-            if (child->value == NegativeInfString) {
+            if (child->value == ctoken::NegativeInf) {
               return std::make_unique<IR::FloatNode>(-std::numeric_limits<double>::infinity());
             }
-            if (child->value == NanString) {
+            if (child->value == ctoken::NaN) {
               return std::make_unique<IR::FloatNode>(std::numeric_limits<double>::quiet_NaN());
             }
             const char *stringNumStart = child->value.data();
@@ -119,18 +136,18 @@ static std::vector<TagPattern> tagPatterns = {
         .match =
             [](const TagNode &node, const PatternMatcher &) {
               auto child = node.getChild<TextNode>();
-              return node.name == "bool" && node.nAttributes() == 0 && node.nChildren() == 1 && child &&
-                     (child->value == TrueString || child->value == FalseString);
+              return node.name == token::Bool && node.nAttributes() == 0 && node.nChildren() == 1 && child &&
+                     (child->value == token::True || child->value == token::False);
             },
         .apply = [](const TagNode &node, Ast2IR &) -> std::unique_ptr<IR::Node> {
           auto child = node.getChild<TextNode>();
-          return child ? std::make_unique<IR::BoolNode>(child->value == TrueString) : nullptr;
+          return child ? std::make_unique<IR::BoolNode>(child->value == token::True) : nullptr;
         },
     },
     {
         .match =
             [](const TagNode &node, const PatternMatcher &) {
-              if (node.name != "time" || node.nAttributes() != 0 || node.nChildren() != 1) {
+              if (node.name != token::Time || node.nAttributes() != 0 || node.nChildren() != 1) {
                 return false;
               }
               if (auto child = node.getChild<TextNode>()) {
@@ -154,12 +171,12 @@ static std::vector<TagPattern> tagPatterns = {
     {
         .match =
             [](const TagNode &node, const PatternMatcher &) {
-              if (node.name != "list" || node.nAttributes() != 0) {
+              if (node.name != token::List || node.nAttributes() != 0) {
                 return false;
               }
               for (const auto &child : node.children) {
                 if (auto element = child->as<TagNode>()) {
-                  if (element->name == "element" && element->nAttributes() == 0 && element->nChildren() <= 1) {
+                  if (element->name == token::Element && element->nAttributes() == 0 && element->nChildren() <= 1) {
                     continue;
                   }
                 }
@@ -184,7 +201,7 @@ static std::vector<TagPattern> tagPatterns = {
     {
         .match =
             [](const TagNode &node, const PatternMatcher &) {
-              if (node.name != "table" || node.nAttributes() != 0) {
+              if (node.name != token::Table || node.nAttributes() != 0) {
                 return false;
               }
               std::unordered_set<std::string> keys;
@@ -193,10 +210,10 @@ static std::vector<TagPattern> tagPatterns = {
                   return false;
                 }
                 auto element = child->as<TagNode>();
-                if (element->name != "element" || element->nAttributes() != 1 || element->nChildren() > 1) {
+                if (element->name != token::Element || element->nAttributes() != 1 || element->nChildren() > 1) {
                   return false;
                 }
-                auto attribute = element->attributes.find("key");
+                auto attribute = element->attributes.find(std::string(token::Key));
                 if (attribute == element->attributes.end()) {
                   return false;
                 }
@@ -211,7 +228,7 @@ static std::vector<TagPattern> tagPatterns = {
           auto tableNode = std::make_unique<IR::TableNode>();
           for (const auto &child : node.children) {
             if (auto element = child->as<TagNode>()) {
-              const std::string &key = element->attributes.find("key")->second;
+              const std::string &key = element->attributes.find(std::string(token::Key))->second;
               if (auto inner = element->getChild<XmlNode>()) {
                 tableNode->children[key] = converter.toIR(*inner);
               } else {
@@ -242,8 +259,6 @@ bool Ast2IR::isSpecial(const TagNode &node) const {
   }
   return false;
 }
-
-size_t Ast2IR::getRecursionDepth() const { return recursionDepth; }
 
 void Ast2IR::visit(const TextNode &node) { currentNode = std::make_unique<IR::StringNode>(node.value); }
 
@@ -281,50 +296,52 @@ bool IR2Ast::isSpecial(const TagNode &node) const {
   return false;
 }
 
-size_t IR2Ast::getRecursionDepth() const { return recursionDepth; }
-
-void IR2Ast::visit(const IR::NullNode &) { currentNode = std::make_unique<TagNode>(std::string(NullString)); }
+void IR2Ast::visit(const IR::NullNode &) { currentNode = std::make_unique<TagNode>(std::string(token::Null)); }
 
 void IR2Ast::visit(const IR::StringNode &node) {
   currentNode = std::make_unique<TextNode>(node.value);
   if (getRecursionDepth() == 1) {
-    currentNode = std::make_unique<TagNode>("quote", std::move(currentNode));
+    currentNode = std::make_unique<TagNode>(std::string(token::Quote), std::move(currentNode));
   }
 }
 
 void IR2Ast::visit(const IR::IntNode &node) {
-  currentNode = std::make_unique<TagNode>("int", std::make_unique<TextNode>(std::format("{}", node.value)));
+  auto text = std::make_unique<TextNode>(std::format("{}", node.value));
+  currentNode = std::make_unique<TagNode>(std::string(token::Int), std::move(text));
 }
 
 void IR2Ast::visit(const IR::FloatNode &node) {
-  currentNode = std::make_unique<TagNode>("float", std::make_unique<TextNode>(formatFloat(node.value)));
+  auto text = std::make_unique<TextNode>(formatFloat(node.value));
+  currentNode = std::make_unique<TagNode>(std::string(token::Float), std::move(text));
 }
 
 void IR2Ast::visit(const IR::BoolNode &node) {
-  currentNode = std::make_unique<TagNode>("bool", std::make_unique<TextNode>(std::string(formatBool(node.value))));
+  auto text = std::make_unique<TextNode>(std::string(node.value ? token::True : token::False));
+  currentNode = std::make_unique<TagNode>(std::string(token::Bool), std::move(text));
 }
 
 void IR2Ast::visit(const IR::DateTimeNode &node) {
-  currentNode = std::make_unique<TagNode>("time", std::make_unique<TextNode>(node.value.toString()));
+  auto text = std::make_unique<TextNode>(node.value.toString());
+  currentNode = std::make_unique<TagNode>(std::string(token::Time), std::move(text));
 }
 
 void IR2Ast::visit(const IR::ListNode &node) {
   TagNode::ChildVector children;
   for (auto &child : node.children) {
-    auto element = std::make_unique<TagNode>("element", toAst(*child));
+    auto element = std::make_unique<TagNode>(std::string(token::Element), toAst(*child));
     children.push_back(std::move(element));
   }
-  currentNode = std::make_unique<TagNode>("list", std::move(children));
+  currentNode = std::make_unique<TagNode>(std::string(token::List), std::move(children));
 }
 
 void IR2Ast::visit(const IR::TableNode &node) {
   TagNode::ChildVector children;
   for (auto &kvp : node.children) {
-    auto element = std::make_unique<TagNode>("element", toAst(*(kvp.second)));
-    element->attributes["key"] = kvp.first;
+    auto element = std::make_unique<TagNode>(std::string(token::Element), toAst(*(kvp.second)));
+    element->attributes[std::string(token::Key)] = kvp.first;
     children.push_back(std::move(element));
   }
-  currentNode = std::make_unique<TagNode>("table", std::move(children));
+  currentNode = std::make_unique<TagNode>(std::string(token::Table), std::move(children));
 }
 
 void IR2Ast::visit(const IR::TagNode &node) {
@@ -335,7 +352,7 @@ void IR2Ast::visit(const IR::TagNode &node) {
   auto tag = std::make_unique<TagNode>(node.name, std::move(children), node.attributes);
 
   if (isSpecial(*tag)) {
-    tag = std::make_unique<TagNode>("quote", std::move(tag));
+    tag = std::make_unique<TagNode>(std::string(token::Quote), std::move(tag));
   }
 
   currentNode = std::move(tag);

@@ -133,23 +133,25 @@ bool reser::isValidXmlName(const std::string_view string) {
   return true;
 }
 
+namespace reser::ctoken {
+const std::string_view PositiveInf = "+inf";
+const std::string_view NegativeInf = "-inf";
+const std::string_view NaN = "nan";
+};  // namespace reser::ctoken
+
 std::string reser::formatFloat(double value) {
   if (std::isinf(value) && value > 0) {
-    return std::string(PositiveInfString);
+    return std::string(ctoken::PositiveInf);
   }
   if (std::isinf(value) && value < 0) {
-    return std::string(NegativeInfString);
+    return std::string(ctoken::NegativeInf);
   }
   if (std::isnan(value)) {
-    return std::string(NanString);
+    return std::string(ctoken::NaN);
   }
   std::string string = std::format("{}", value);
   if (string.find_first_of(".eE") == std::string::npos) {
     string.append(".0");
   }
   return string;
-}
-
-std::string_view reser::formatBool(bool value) {
-  return value ? TrueString : FalseString;
 }

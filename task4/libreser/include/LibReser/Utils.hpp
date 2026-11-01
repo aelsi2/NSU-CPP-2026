@@ -28,15 +28,13 @@ class EscapeError : public std::runtime_error {
   EscapeError(const std::string &message) : Base(message) {}
 };
 
-inline constexpr std::string_view PositiveInfString = "+inf";
-inline constexpr std::string_view NegativeInfString = "-inf";
-inline constexpr std::string_view NanString = "nan";
-inline constexpr std::string_view NullString = "null";
-inline constexpr std::string_view TrueString = "true";
-inline constexpr std::string_view FalseString = "false";
+namespace ctoken {
+extern const std::string_view PositiveInf;
+extern const std::string_view NegativeInf;
+extern const std::string_view NaN;
+};  // namespace ctoken
 
 std::string formatFloat(double value);
-std::string_view formatBool(bool value);
 
 };  // namespace reser
 

@@ -8,6 +8,19 @@ using namespace reser::toml::detail;
 using namespace reser::toml;
 using namespace reser;
 
+namespace reser::toml::token {
+namespace {
+constexpr std::string_view Type = "$type";
+constexpr std::string_view Quote = "quote";
+constexpr std::string_view Inner = "inner";
+constexpr std::string_view Null = "null";
+constexpr std::string_view Tag = "tag";
+constexpr std::string_view TagName = "name";
+constexpr std::string_view TagChildren = "children";
+constexpr std::string_view TagAttributes = "attributes";
+};  // namespace
+};  // namespace reser::toml::token
+
 static std::vector<TablePattern> tagPatterns = {
     {
         .match =
@@ -15,25 +28,25 @@ static std::vector<TablePattern> tagPatterns = {
               if (node.nValues() != 2) {
                 return false;
               }
-              auto type = node.getValue<StringNode>("$type");
-              if (!type || type->value != "quote") {
+              auto type = node.getValue<StringNode>(token::Type);
+              if (!type || type->value != token::Quote) {
                 return false;
               }
-              if (auto inner = node.getValue<TableNode>("inner")) {
+              if (auto inner = node.getValue<TableNode>(token::Inner)) {
                 return matcher.isSpecial(*inner);
               }
               return matcher.getRecursionDepth() == 1;
             },
         .apply = [](const TableNode &node, Ast2IR &converter) -> std::unique_ptr<IR::Node> {
-          auto inner = node.getValue<TomlNode>("inner");
+          auto inner = node.getValue<TomlNode>(token::Inner);
           return inner ? converter.toIR(*inner, true) : nullptr;
         },
     },
     {
         .match =
             [](const TableNode &node, const PatternMatcher &) {
-              auto type = node.getValue<StringNode>("$type");
-              return node.nValues() == 1 && type && type->value == "null";
+              auto type = node.getValue<StringNode>(token::Type);
+              return node.nValues() == 1 && type && type->value == token::Null;
             },
         .apply = [](const TableNode &, Ast2IR &) -> std::unique_ptr<IR::Node> {
           return std::make_unique<IR::NullNode>();
@@ -42,15 +55,15 @@ static std::vector<TablePattern> tagPatterns = {
     {
         .match =
             [](const TableNode &node, const PatternMatcher &) {
-              auto type = node.getValue<StringNode>("$type");
-              auto name = node.getValue<StringNode>("name");
-              auto attributes = node.getValue<TableNode>("attributes");
-              auto children = node.getValue<ListNode>("children");
+              auto type = node.getValue<StringNode>(token::Type);
+              auto name = node.getValue<StringNode>(token::TagName);
+              auto attributes = node.getValue<TableNode>(token::TagAttributes);
+              auto children = node.getValue<ListNode>(token::TagChildren);
 
               if (node.nValues() != 4) {
                 return false;
               }
-              if (!type || type->value != "tag") {
+              if (!type || type->value != token::Tag) {
                 return false;
               }
               if (!name || !isValidXmlName(name->value)) {
@@ -73,9 +86,9 @@ static std::vector<TablePattern> tagPatterns = {
               return true;
             },
         .apply = [](const TableNode &node, Ast2IR &converter) -> std::unique_ptr<IR::Node> {
-          auto nameNode = node.getValue<StringNode>("name");
-          auto attributes = node.getValue<TableNode>("attributes");
-          auto children = node.getValue<ListNode>("children");
+          auto nameNode = node.getValue<StringNode>(token::TagName);
+          auto attributes = node.getValue<TableNode>(token::TagAttributes);
+          auto children = node.getValue<ListNode>(token::TagChildren);
 
           std::string name;
           if (nameNode) {
@@ -122,8 +135,6 @@ bool Ast2IR::isSpecial(const TableNode &node) const {
   }
   return false;
 }
-
-size_t Ast2IR::getRecursionDepth() const { return recursionDepth; }
 
 void Ast2IR::visit(const StringNode &node) { currentNode = std::make_unique<IR::StringNode>(node.value); }
 
@@ -176,12 +187,10 @@ bool IR2Ast::isSpecial(const TableNode &node) const {
   return false;
 }
 
-size_t IR2Ast::getRecursionDepth() const { return recursionDepth; }
-
 std::unique_ptr<TableNode> IR2Ast::quoteNode(std::unique_ptr<TomlNode> node) {
   TableNode::ChildMap map;
-  map["$type"] = std::make_unique<StringNode>("quote");
-  map["inner"] = std::move(node);
+  map[std::string(token::Type)] = std::make_unique<StringNode>(std::string(token::Quote));
+  map[std::string(token::Inner)] = std::move(node);
   return std::make_unique<TableNode>(std::move(map));
 }
 
@@ -194,7 +203,7 @@ std::unique_ptr<TomlNode> IR2Ast::quoteIfTopLevel(std::unique_ptr<TomlNode> node
 
 void IR2Ast::visit(const IR::NullNode &) {
   auto node = std::make_unique<TableNode>();
-  node->children["$type"] = std::make_unique<StringNode>("null");
+  node->children[std::string(token::Type)] = std::make_unique<StringNode>(std::string(token::Null));
   currentNode = std::move(node);
 }
 
@@ -242,7 +251,7 @@ void IR2Ast::visit(const IR::TableNode &node) {
 }
 
 void IR2Ast::visit(const IR::TagNode &node) {
-  auto type = std::make_unique<StringNode>("tag");
+  auto type = std::make_unique<StringNode>(std::string(token::Tag));
   auto name = std::make_unique<StringNode>(node.name);
   auto attributes = std::make_unique<TableNode>();
   for (auto &kvp : node.attributes) {
@@ -254,10 +263,10 @@ void IR2Ast::visit(const IR::TagNode &node) {
   }
 
   auto tag = std::make_unique<TableNode>();
-  tag->children["$type"] = std::move(type);
-  tag->children["name"] = std::move(name);
-  tag->children["attributes"] = std::move(attributes);
-  tag->children["children"] = std::move(children);
+  tag->children[std::string(token::Type)] = std::move(type);
+  tag->children[std::string(token::TagName)] = std::move(name);
+  tag->children[std::string(token::TagAttributes)] = std::move(attributes);
+  tag->children[std::string(token::TagChildren)] = std::move(children);
 
   currentNode = std::move(tag);
 }

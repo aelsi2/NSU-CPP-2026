@@ -1,5 +1,4 @@
 #include <iostream>
-#include <stdexcept>
 
 #include "LibReser/Format.hpp"
 #include "LibReser/Json/Backend.hpp"

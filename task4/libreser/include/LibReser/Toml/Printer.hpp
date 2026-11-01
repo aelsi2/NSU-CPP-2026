@@ -23,8 +23,8 @@ class Printer : AstVisitor {
   void visit(const TableNode &node) override;
 
   void printDocument(const TomlNode &node);
-  void printSection(const TomlPath &path, const TableNode &node, bool arrayElement = false);
-  void printSectionHeader(const TomlPath &path, bool arrayElement = false);
+  void printSection(const TomlPathSlice path, const TableNode &node);
+  void printSectionHeader(const TomlPathSlice path);
   void printKey(std::string_view key);
   void printKvp(std::string_view key, const TomlNode &value);
   void printIndent();

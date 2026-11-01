@@ -13,13 +13,43 @@
 namespace reser {
 namespace toml {
 
-class AstVisitor;
+struct TomlPathSlice;
 
 struct TomlPath {
-  TomlPath() {}
-  TomlPath(std::string string) { elements.push_back(std::move(string)); }
+  TomlPath() : keys(), isArrayOfTables(false) {}
+  TomlPath(std::vector<std::string> keys, bool isArrayOfTables = false)
+      : keys(std::move(keys)), isArrayOfTables(isArrayOfTables) {}
+  TomlPath(std::string path, bool isArrayOfTables = false) : keys{std::move(path)}, isArrayOfTables(isArrayOfTables) {}
 
-  std::vector<std::string> elements;
+  bool empty() const { return keys.empty(); }
+  bool simple() const { return keys.size() == 1; }
+
+  TomlPath concat(const TomlPathSlice &slice) const;
+
+  void push_back(std::string value) { keys.push_back(std::move(value)); }
+  void pop_back() { keys.pop_back(); }
+
+  std::vector<std::string> keys;
+  bool isArrayOfTables;
+};
+
+struct TomlPathSlice {
+  TomlPathSlice() : keys(), isArrayOfTables(false) {}
+  TomlPathSlice(std::span<const std::string> keys, bool isArray = false) : keys(keys), isArrayOfTables(isArray) {}
+  TomlPathSlice(const TomlPath &path) : keys(path.keys), isArrayOfTables(path.isArrayOfTables) {}
+
+  explicit operator TomlPath() const { return TomlPath(std::vector(keys.begin(), keys.end()), isArrayOfTables); }
+
+  bool empty() const { return keys.empty(); }
+  bool simple() const { return keys.size() == 1; }
+
+  TomlPath concat(const TomlPathSlice &slice) const;
+
+  const std::string *head() const { return keys.empty() ? nullptr : &keys[0]; }
+  TomlPathSlice tail() const { return TomlPathSlice(keys.subspan(keys.empty() ? 0 : 1), isArrayOfTables); }
+
+  std::span<const std::string> keys;
+  bool isArrayOfTables;
 };
 
 enum class TomlNodeType {
@@ -31,6 +61,8 @@ enum class TomlNodeType {
   List,
   Table,
 };
+
+class AstVisitor;
 
 using TomlNode = AstNode<TomlNodeType, AstVisitor>;
 
@@ -57,11 +89,21 @@ class TableNode : public TomlNodeImpl<TableNode, TomlNodeType::Table> {
   TableNode(ChildMap children) : children(std::move(children)) {}
 
   template <typename T>
-  const T *getValue(const std::string_view name) const {
+  const T *getValue(std::string_view name) const {
     auto child = children.find(std::string(name));
     return child == children.end() ? nullptr : child->second->as<T>();
   }
+
+  template <typename T>
+  T *getValue(std::string_view name) {
+    auto child = children.find(std::string(name));
+    return child == children.end() ? nullptr : child->second->as<T>();
+  }
+
   inline size_t nValues() const { return children.size(); }
+
+  TableNode *getSection(TomlPathSlice path);
+  bool putValue(TomlPathSlice path, std::unique_ptr<TomlNode> value);
 
   ChildMap children;
 };
@@ -73,6 +115,7 @@ class ListNode : public TomlNodeImpl<ListNode, TomlNodeType::List> {
   ListNode() {}
   ListNode(ChildVector children) : children(std::move(children)) {}
 
+  bool empty() const { return children.empty(); }
   bool isOfTables() const {
     if (children.empty()) {
       return false;
@@ -85,9 +128,10 @@ class ListNode : public TomlNodeImpl<ListNode, TomlNodeType::List> {
     return true;
   }
 
+  TableNode *getSection(TomlPathSlice path);
+
   ChildVector children;
 };
-
 
 class AstVisitor {
  public:

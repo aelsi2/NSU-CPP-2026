@@ -69,7 +69,13 @@ void ParserState::parseToken(std::string_view token) {
 }
 
 void ParserState::skipWhitespace(bool skipNewLine) {
-  while ((peek() && std::isspace(*peek(), std::locale::classic())) || (peek() == '\n' && !skipNewLine)) {
+  while (auto ch = peek()) {
+    if (*ch == '\n' && !skipNewLine) {
+      break;
+    }
+    if (!std::isspace(*ch, std::locale::classic())) {
+      break;
+    }
     consume();
   }
 }

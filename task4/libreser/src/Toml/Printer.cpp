@@ -1,5 +1,6 @@
 #include "LibReser/Toml/Printer.hpp"
 
+#include "LibReser/Toml/AST.hpp"
 #include "LibReser/Utils.hpp"
 
 using namespace reser::toml;
@@ -14,14 +15,14 @@ void Printer::printDocument(const TomlNode &node) {
   Printer printer(stream);
   const TableNode *table = node.as<TableNode>();
   if (table) {
-    printSection(TomlPath(), *table);
+    printSection(TomlPathSlice(), *table);
   } else {
     throw std::logic_error("Invalid TOML root node.");
   }
 }
 
-void Printer::printSection(const TomlPath &path, const TableNode &node, bool arrayElement) {
-  printSectionHeader(path, arrayElement);
+void Printer::printSection(TomlPathSlice path, const TableNode &node) {
+  printSectionHeader(path);
 
   bool printedAnyLines = false;
 
@@ -42,15 +43,16 @@ void Printer::printSection(const TomlPath &path, const TableNode &node, bool arr
   }
 
   // nested sections
-  TomlPath nextPath = path;
-  nextPath.elements.push_back("");
+  TomlPath nextPath = TomlPath(path);
+  nextPath.push_back("");
   for (const auto &kvp : node.children) {
     if (!kvp.second->isa<TableNode>()) {
       continue;
     }
 
-    nextPath.elements.pop_back();
-    nextPath.elements.push_back(kvp.first);
+    nextPath.isArrayOfTables = false;
+    nextPath.pop_back();
+    nextPath.push_back(kvp.first);
 
     if (printedAnyLines) {
       stream << "\n";
@@ -69,8 +71,9 @@ void Printer::printSection(const TomlPath &path, const TableNode &node, bool arr
       continue;
     }
 
-    nextPath.elements.pop_back();
-    nextPath.elements.push_back(kvp.first);
+    nextPath.isArrayOfTables = true;
+    nextPath.pop_back();
+    nextPath.push_back(kvp.first);
 
     for (const auto &item : kvp.second->as<ListNode>()->children) {
       if (printedAnyLines) {
@@ -78,26 +81,26 @@ void Printer::printSection(const TomlPath &path, const TableNode &node, bool arr
       } else {
         printedAnyLines = true;
       }
-      printSection(nextPath, *item->as<TableNode>(), true);
+      printSection(nextPath, *item->as<TableNode>());
     }
   }
 }
 
-void Printer::printSectionHeader(const TomlPath &path, bool array) {
-  if (path.elements.empty()) {
+void Printer::printSectionHeader(TomlPathSlice path) {
+  if (path.empty()) {
     return;
   }
-  if (array) {
+  if (path.isArrayOfTables) {
     stream << "[[";
   } else {
     stream << "[";
   }
-  printKey(path.elements[0]);
-  for (auto iter = std::next(path.elements.begin()); iter != path.elements.end(); iter++) {
+  printKey(path.keys[0]);
+  for (const auto &key : path.tail().keys) {
     stream << ".";
-    printKey(*iter);
+    printKey(key);
   }
-  if (array) {
+  if (path.isArrayOfTables) {
     stream << "]]\n";
   } else {
     stream << "]\n";
@@ -107,7 +110,7 @@ void Printer::printSectionHeader(const TomlPath &path, bool array) {
 void Printer::visit(const StringNode &node) { stream << "\"" << tomlEscape(node.value) << "\""; }
 void Printer::visit(const IntNode &node) { stream << node.value; }
 void Printer::visit(const FloatNode &node) { stream << node.value; }
-void Printer::visit(const BoolNode &node) { stream << node.value; }
+void Printer::visit(const BoolNode &node) { stream << std::format("{}", node.value); }
 void Printer::visit(const DateTimeNode &node) { stream << node.value.toString(); }
 
 void Printer::visit(const ListNode &node) {
@@ -140,13 +143,11 @@ void Printer::visit(const TableNode &node) {
   auto &kvp = *node.children.begin();
   printIndent();
   printKvp(kvp.first, *kvp.second);
-  stream << "\n";
   for (auto iter = std::next(node.children.begin()); iter != node.children.end(); iter++) {
     stream << ",\n";
     auto &kvp = *iter;
     printIndent();
     printKvp(kvp.first, *kvp.second);
-    stream << "\n";
   }
   stream << "\n";
   indentLevel--;
@@ -155,6 +156,9 @@ void Printer::visit(const TableNode &node) {
 }
 
 static bool isValidBareKey(std::string_view name) {
+  if (name.empty()) {
+    return false;
+  }
   for (const auto ch : name) {
     if (std::isalnum(ch, std::locale::classic())) {
       continue;

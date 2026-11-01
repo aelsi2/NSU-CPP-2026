@@ -25,7 +25,7 @@ static std::vector<TablePattern> tagPatterns = {
               return matcher.getRecursionDepth() == 1;
             },
         .apply = [](const TableNode &node, Ast2IR &converter) -> std::unique_ptr<IR::Node> {
-          auto inner = node.getValue<TableNode>("inner");
+          auto inner = node.getValue<TomlNode>("inner");
           return inner ? converter.toIR(*inner, true) : nullptr;
         },
     },

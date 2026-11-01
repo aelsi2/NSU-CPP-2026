@@ -41,6 +41,11 @@ class AstNode {
     return isa<T>() ? static_cast<const T *>(this) : nullptr;
   }
 
+  template <IsAstNode<AstNodeType, AstVisitor> T>
+  inline T *as() {
+    return isa<T>() ? static_cast<T *>(this) : nullptr;
+  }
+
  protected:
   virtual AstNodeType type() const = 0;
 };

@@ -4,8 +4,8 @@
 #include <istream>
 #include <memory>
 
-#include "LibReser/Parser.hpp"
 #include "LibReser/Format.hpp"
+#include "LibReser/Parser.hpp"
 #include "LibReser/Toml/AST.hpp"
 
 namespace reser {
@@ -17,14 +17,25 @@ class Parser {
   static std::unique_ptr<TomlNode> parse(std::istream &stream);
 
  private:
-  std::string parseString();
-  std::unique_ptr<TomlNode> parseNode();
+  std::unique_ptr<TableNode> parseDocument();
+  void parseSection(TableNode &section);
+  TomlPath parseSectionHeader();
+  
+  std::unique_ptr<TomlNode> parseInlineNode();
   std::unique_ptr<StringNode> parseStringNode();
   std::unique_ptr<TomlNode> parseIntOrFloatNode();
   std::unique_ptr<BoolNode> parseTrueNode();
   std::unique_ptr<BoolNode> parseFalseNode();
   std::unique_ptr<TableNode> parseTableNode();
   std::unique_ptr<ListNode> parseListNode();
+
+  TomlPath parsePath();
+  std::string parseKey();
+  std::string parseBareKey();
+  std::string parseString(bool allowMultiline = true);
+  std::string parseQuoteString(bool allowMultiline = true);
+  std::string parseAposString(bool allowMultiline = true);
+  bool parseLineEnd();
 
   ParserState state;
 };

@@ -110,7 +110,6 @@ static std::vector<TagPattern> tagPatterns = {
             },
         .apply = [](const TagNode &node, Ast2IR &) -> std::unique_ptr<IR::Node> {
           auto child = node.getChild<TextNode>();
-          return std::make_unique<IR::NullNode>();
           return child ? std::make_unique<IR::BoolNode>(child->value == "true") : nullptr;
         },
     },

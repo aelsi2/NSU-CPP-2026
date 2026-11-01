@@ -14,6 +14,7 @@ target_sources(
     src/Xml/Printer.cpp
     src/Xml/Parser.cpp
     src/Xml/Backend.cpp
+    src/Toml/AST.cpp
     src/Toml/IRConverter.cpp
     src/Toml/Printer.cpp
     src/Toml/Parser.cpp

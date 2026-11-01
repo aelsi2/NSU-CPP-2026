@@ -15,7 +15,7 @@ void Printer::visit(const NullNode &) { stream << "null"; }
 void Printer::visit(const StringNode &node) { stream << "\"" << jsonEscape(node.value) << "\""; }
 void Printer::visit(const IntNode &node) { stream << node.value; }
 void Printer::visit(const FloatNode &node) { stream << node.value; }
-void Printer::visit(const BoolNode &node) { stream << node.value; }
+void Printer::visit(const BoolNode &node) { stream << std::format("{}", node.value); }
 
 void Printer::visit(const ListNode &node) {
   if (node.children.empty()) {

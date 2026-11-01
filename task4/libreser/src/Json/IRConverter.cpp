@@ -1,5 +1,7 @@
 #include "LibReser/Json/IRConverter.hpp"
 
+#include <cmath>
+
 #include "LibReser/IR.hpp"
 #include "LibReser/Json/AST.hpp"
 #include "LibReser/Utils.hpp"
@@ -18,6 +20,36 @@ static std::vector<TablePattern> tagPatterns = {
         .apply = [](const TableNode &node, Ast2IR &converter) -> std::unique_ptr<IR::Node> {
           auto inner = node.getValue<TableNode>("inner");
           return inner ? converter.toIR(*inner, true) : nullptr;
+        },
+    },
+    {
+        .match =
+            [](const TableNode &node, const PatternMatcher &) {
+              auto type = node.getValue<StringNode>("$type");
+              return node.nValues() == 1 && type && type->value == PositiveInfString;
+            },
+        .apply = [](const TableNode &, Ast2IR &) -> std::unique_ptr<IR::Node> {
+          return std::make_unique<IR::FloatNode>(std::numeric_limits<double>::infinity());
+        },
+    },
+    {
+        .match =
+            [](const TableNode &node, const PatternMatcher &) {
+              auto type = node.getValue<StringNode>("$type");
+              return node.nValues() == 1 && type && type->value == NegativeInfString;
+            },
+        .apply = [](const TableNode &, Ast2IR &) -> std::unique_ptr<IR::Node> {
+          return std::make_unique<IR::FloatNode>(-std::numeric_limits<double>::infinity());
+        },
+    },
+    {
+        .match =
+            [](const TableNode &node, const PatternMatcher &) {
+              auto type = node.getValue<StringNode>("$type");
+              return node.nValues() == 1 && type && type->value == NanString;
+            },
+        .apply = [](const TableNode &, Ast2IR &) -> std::unique_ptr<IR::Node> {
+          return std::make_unique<IR::FloatNode>(-std::numeric_limits<double>::quiet_NaN());
         },
     },
     {
@@ -190,7 +222,26 @@ void IR2Ast::visit(const IR::StringNode &node) { currentNode = std::make_unique<
 
 void IR2Ast::visit(const IR::IntNode &node) { currentNode = std::make_unique<IntNode>(node.value); }
 
-void IR2Ast::visit(const IR::FloatNode &node) { currentNode = std::make_unique<FloatNode>(node.value); }
+void IR2Ast::visit(const IR::FloatNode &node) {
+  if (std::isinf(node.value) && node.value > 0) {
+    auto value = std::make_unique<TableNode>();
+    value->children["$type"] = std::make_unique<StringNode>(std::string(PositiveInfString));
+    currentNode = std::move(value);
+
+  } else if (std::isinf(node.value) && node.value < 0) {
+    auto value = std::make_unique<TableNode>();
+    value->children["$type"] = std::make_unique<StringNode>(std::string(NegativeInfString));
+    currentNode = std::move(value);
+
+  } else if (std::isnan(node.value)) {
+    auto value = std::make_unique<TableNode>();
+    value->children["$type"] = std::make_unique<StringNode>(std::string(NanString));
+    currentNode = std::move(value);
+
+  } else {
+    currentNode = std::make_unique<FloatNode>(node.value);
+  }
+}
 
 void IR2Ast::visit(const IR::BoolNode &node) { currentNode = std::make_unique<BoolNode>(node.value); }
 

@@ -1,5 +1,7 @@
 #include "LibReser/Utils.hpp"
 
+#include <cmath>
+#include <format>
 #include <locale>
 #include <map>
 
@@ -129,4 +131,25 @@ bool reser::isValidXmlName(const std::string_view string) {
     return false;
   }
   return true;
+}
+
+std::string reser::formatFloat(double value) {
+  if (std::isinf(value) && value > 0) {
+    return std::string(PositiveInfString);
+  }
+  if (std::isinf(value) && value < 0) {
+    return std::string(NegativeInfString);
+  }
+  if (std::isnan(value)) {
+    return std::string(NanString);
+  }
+  std::string string = std::format("{}", value);
+  if (string.find_first_of(".eE") == std::string::npos) {
+    string.append(".0");
+  }
+  return string;
+}
+
+std::string_view reser::formatBool(bool value) {
+  return value ? TrueString : FalseString;
 }

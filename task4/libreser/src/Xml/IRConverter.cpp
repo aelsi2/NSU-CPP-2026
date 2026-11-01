@@ -3,6 +3,7 @@
 #include <unordered_set>
 
 #include "LibReser/IR.hpp"
+#include "LibReser/Utils.hpp"
 #include "LibReser/Xml/AST.hpp"
 
 using namespace reser::xml::detail;
@@ -35,7 +36,7 @@ static std::vector<TagPattern> tagPatterns = {
     {
         .match =
             [](const TagNode &node, const PatternMatcher &) {
-              return node.name == "null" && node.nAttributes() == 0 && node.nChildren() == 0;
+              return node.name == NullString && node.nAttributes() == 0 && node.nChildren() == 0;
             },
         .apply = [](const TagNode &, Ast2IR &) -> std::unique_ptr<IR::Node> {
           return std::make_unique<IR::NullNode>();
@@ -78,6 +79,10 @@ static std::vector<TagPattern> tagPatterns = {
                 return false;
               }
               if (auto child = node.getChild<TextNode>()) {
+                if (child->value == PositiveInfString || child->value == NegativeInfString ||
+                    child->value == NanString) {
+                  return true;
+                }
                 const char *stringNumStart = child->value.data();
                 const char *stringNumEnd = child->value.data() + child->value.size();
                 double value = 0;
@@ -90,6 +95,15 @@ static std::vector<TagPattern> tagPatterns = {
             },
         .apply = [](const TagNode &node, Ast2IR &) -> std::unique_ptr<IR::Node> {
           if (auto child = node.getChild<TextNode>()) {
+            if (child->value == PositiveInfString) {
+              return std::make_unique<IR::FloatNode>(std::numeric_limits<double>::infinity());
+            }
+            if (child->value == NegativeInfString) {
+              return std::make_unique<IR::FloatNode>(-std::numeric_limits<double>::infinity());
+            }
+            if (child->value == NanString) {
+              return std::make_unique<IR::FloatNode>(std::numeric_limits<double>::quiet_NaN());
+            }
             const char *stringNumStart = child->value.data();
             const char *stringNumEnd = child->value.data() + child->value.size();
             double value = 0;
@@ -106,11 +120,11 @@ static std::vector<TagPattern> tagPatterns = {
             [](const TagNode &node, const PatternMatcher &) {
               auto child = node.getChild<TextNode>();
               return node.name == "bool" && node.nAttributes() == 0 && node.nChildren() == 1 && child &&
-                     (child->value == "true" || child->value == "false");
+                     (child->value == TrueString || child->value == FalseString);
             },
         .apply = [](const TagNode &node, Ast2IR &) -> std::unique_ptr<IR::Node> {
           auto child = node.getChild<TextNode>();
-          return child ? std::make_unique<IR::BoolNode>(child->value == "true") : nullptr;
+          return child ? std::make_unique<IR::BoolNode>(child->value == TrueString) : nullptr;
         },
     },
     {
@@ -269,7 +283,7 @@ bool IR2Ast::isSpecial(const TagNode &node) const {
 
 size_t IR2Ast::getRecursionDepth() const { return recursionDepth; }
 
-void IR2Ast::visit(const IR::NullNode &) { currentNode = std::make_unique<TagNode>("null"); }
+void IR2Ast::visit(const IR::NullNode &) { currentNode = std::make_unique<TagNode>(std::string(NullString)); }
 
 void IR2Ast::visit(const IR::StringNode &node) {
   currentNode = std::make_unique<TextNode>(node.value);
@@ -283,11 +297,11 @@ void IR2Ast::visit(const IR::IntNode &node) {
 }
 
 void IR2Ast::visit(const IR::FloatNode &node) {
-  currentNode = std::make_unique<TagNode>("float", std::make_unique<TextNode>(std::format("{}", node.value)));
+  currentNode = std::make_unique<TagNode>("float", std::make_unique<TextNode>(formatFloat(node.value)));
 }
 
 void IR2Ast::visit(const IR::BoolNode &node) {
-  currentNode = std::make_unique<TagNode>("bool", std::make_unique<TextNode>(std::format("{}", node.value)));
+  currentNode = std::make_unique<TagNode>("bool", std::make_unique<TextNode>(std::string(formatBool(node.value))));
 }
 
 void IR2Ast::visit(const IR::DateTimeNode &node) {

@@ -108,9 +108,9 @@ void Printer::printSectionHeader(TomlPathSlice path) {
 }
 
 void Printer::visit(const StringNode &node) { stream << "\"" << tomlEscape(node.value) << "\""; }
-void Printer::visit(const IntNode &node) { stream << node.value; }
-void Printer::visit(const FloatNode &node) { stream << node.value; }
-void Printer::visit(const BoolNode &node) { stream << std::format("{}", node.value); }
+void Printer::visit(const IntNode &node) { stream << std::format("{}", node.value); }
+void Printer::visit(const FloatNode &node) { stream << formatFloat(node.value); }
+void Printer::visit(const BoolNode &node) { stream << (node.value ? "true" : "false"); }
 void Printer::visit(const DateTimeNode &node) { stream << node.value.toString(); }
 
 void Printer::visit(const ListNode &node) {

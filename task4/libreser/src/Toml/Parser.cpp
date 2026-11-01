@@ -3,6 +3,7 @@
 #include <charconv>
 #include <cmath>
 #include <initializer_list>
+#include <limits>
 #include <locale>
 
 #include "LibReser/Parser.hpp"
@@ -106,14 +107,25 @@ std::unique_ptr<TomlNode> Parser::parseInlineNode() {
       return parseTrueNode();
     case 'f':
       return parseFalseNode();
+    case 'i':
+    case 'n':
+      return parseFloatSpecial();
     case '0':
       if (state.match2('0', 'x') || state.match2('0', 'X') || state.match2('0', 'b') || state.match2('0', 'B') ||
           state.match2('0', 'o') || state.match2('0', 'O')) {
         return parseBaseIntegerNode();
       }
-      [[fallthrough]];
+      return parseNumberOrDateNode();
     case '+':
+      if (state.match2('+', 'i') || state.match2('+', 'n')) {
+        return parseFloatSpecial();
+      }
+      return parseNumberOrDateNode();
     case '-':
+      if (state.match2('-', 'i') || state.match2('-', 'n')) {
+        return parseFloatSpecial();
+      }
+      return parseNumberOrDateNode();
     case '1':
     case '2':
     case '3':
@@ -256,6 +268,29 @@ std::unique_ptr<TomlNode> Parser::parseNumberOrDateNode() {
     return std::make_unique<IntNode>(*intNum);
   }
   state.error("Invalid decimal integer.", start);
+}
+
+std::unique_ptr<FloatNode> Parser::parseFloatSpecial() {
+  Position start = state.pos();
+  int sign = 1;
+  double value;
+  if (state.peek() == '+') {
+    state.consume();
+    sign = 1;
+  } else if (state.peek() == '-') {
+    state.consume();
+    sign = -1;
+  }
+  if (state.peek() == 'n') {
+    value = std::numeric_limits<double>::quiet_NaN();
+    state.parseToken("nan");
+  } else if (state.peek() == 'i') {
+    value = std::numeric_limits<double>::infinity();
+    state.parseToken("inf");
+  } else {
+    state.error("Invalid special float value.", start);
+  }
+  return std::make_unique<FloatNode>(value * sign);
 }
 
 std::unique_ptr<TableNode> Parser::parseTableNode() {

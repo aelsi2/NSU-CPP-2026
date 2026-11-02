@@ -425,7 +425,7 @@ std::string Parser::parseQuoteString(bool allowMultiline) {
     state.consume();
   }
 
-  bool multiline;
+  bool multiline = false;
   switch (quoteCount) {
     case 0:
       state.error("Expected quoted string", start);
@@ -495,7 +495,7 @@ std::string Parser::parseAposString(bool allowMultiline) {
     state.consume();
   }
 
-  bool multiline;
+  bool multiline = false;
   switch (quoteCount) {
     case 0:
       state.error("Expected single-quoted string", start);

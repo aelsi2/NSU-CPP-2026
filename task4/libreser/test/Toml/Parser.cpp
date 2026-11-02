@@ -725,6 +725,90 @@ TEST(TomlParser, AposKey) {
   ASSERT_EQ(true, value->value);
 }
 
+TEST(TomlParser, OffsetDateTime) {
+  std::istringstream stream("value = 2026-11-03T10:25:37.333+07:00");
+  auto node = Parser::parse(stream);
+
+  ASSERT_TRUE(node && node->isa<TableNode>());
+  auto root = node->as<TableNode>();
+
+  auto value = root->getChild<DateTimeNode>("value");
+  ASSERT_NE(value, nullptr);
+  ASSERT_EQ("2026-11-03T10:25:37.333+07:00", value->value.toString());
+}
+
+TEST(TomlParser, ZuluDateTime) {
+  std::istringstream stream("value = 2026-11-03t10:25:37.333z");
+  auto node = Parser::parse(stream);
+
+  ASSERT_TRUE(node && node->isa<TableNode>());
+  auto root = node->as<TableNode>();
+
+  auto value = root->getChild<DateTimeNode>("value");
+  ASSERT_NE(value, nullptr);
+  ASSERT_EQ("2026-11-03T10:25:37.333Z", value->value.toString());
+}
+
+TEST(TomlParser, LocalDateTime) {
+  std::istringstream stream("value = 2026-11-03 10:25:37.333");
+  auto node = Parser::parse(stream);
+
+  ASSERT_TRUE(node && node->isa<TableNode>());
+  auto root = node->as<TableNode>();
+
+  auto value = root->getChild<DateTimeNode>("value");
+  ASSERT_NE(value, nullptr);
+  ASSERT_EQ("2026-11-03T10:25:37.333", value->value.toString());
+}
+
+TEST(TomlParser, LocalDate) {
+  std::istringstream stream(R"(value = 2026-11-03)");
+  auto node = Parser::parse(stream);
+
+  ASSERT_TRUE(node && node->isa<TableNode>());
+  auto root = node->as<TableNode>();
+
+  auto value = root->getChild<DateTimeNode>("value");
+  ASSERT_NE(value, nullptr);
+  ASSERT_EQ("2026-11-03", value->value.toString());
+}
+
+TEST(TomlParser, LocalTime) {
+  std::istringstream stream(R"(value = 10:25:37.333)");
+  auto node = Parser::parse(stream);
+
+  ASSERT_TRUE(node && node->isa<TableNode>());
+  auto root = node->as<TableNode>();
+
+  auto value = root->getChild<DateTimeNode>("value");
+  ASSERT_NE(value, nullptr);
+  ASSERT_EQ("10:25:37.333", value->value.toString());
+}
+
+TEST(TomlParser, LocalTimeNoMillis) {
+  std::istringstream stream(R"(value = 10:25:37)");
+  auto node = Parser::parse(stream);
+
+  ASSERT_TRUE(node && node->isa<TableNode>());
+  auto root = node->as<TableNode>();
+
+  auto value = root->getChild<DateTimeNode>("value");
+  ASSERT_NE(value, nullptr);
+  ASSERT_EQ("10:25:37.000", value->value.toString());
+}
+
+TEST(TomlParser, LocalTimeNoSeconds) {
+  std::istringstream stream(R"(value = 10:25)");
+  auto node = Parser::parse(stream);
+
+  ASSERT_TRUE(node && node->isa<TableNode>());
+  auto root = node->as<TableNode>();
+
+  auto value = root->getChild<DateTimeNode>("value");
+  ASSERT_NE(value, nullptr);
+  ASSERT_EQ("10:25:00.000", value->value.toString());
+}
+
 TEST(TomlParser, RootValue) {
   std::istringstream stream("12345");
   ASSERT_THROW(Parser::parse(stream), reser::ParseError);

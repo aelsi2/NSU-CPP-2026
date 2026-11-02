@@ -232,7 +232,7 @@ std::unique_ptr<TomlNode> Parser::parseNumberOrDateNode() {
   std::string string = state.readAnyChar("0123456789_+-.eEtTzZ:");
   if (state.peek() == ' ' && state.peek2() && std::isdigit(*state.peek2(), std::locale::classic())) {
     string.push_back(*state.consume());
-    string.append(state.readAnyChar("0123456789+-zZ:"));
+    string.append(state.readAnyChar("0123456789+-zZ:."));
   }
 
   bool hasDecimalPoint = string.find(".") != std::string::npos;

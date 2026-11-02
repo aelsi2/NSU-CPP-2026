@@ -124,7 +124,7 @@ TEST(JsonParser, StringEscapeQuotes) {
 TEST(JsonParser, EmptyTableKey) {
   std::istringstream stream("{\"\":\"\"}");
   auto node = Parser::parse(stream);
-  ASSERT_TRUE(node && node->isa<TableNode>() && node->as<TableNode>()->getValue<StringNode>(""));
+  ASSERT_TRUE(node && node->isa<TableNode>() && node->as<TableNode>()->getChild<StringNode>(""));
 }
 
 TEST(JsonParser, ListOfFloats) {
@@ -168,16 +168,16 @@ TEST(JsonParser, NestedTable) {
   ASSERT_TRUE(root && root->isa<TableNode>());
   ASSERT_EQ(1, root->as<TableNode>()->children.size());
 
-  const auto &c1 = *root->as<TableNode>()->getValue<TableNode>("a");
+  const auto &c1 = *root->as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(1, c1.as<TableNode>()->children.size());
 
-  const auto &c2 = *c1.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c2 = *c1.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(1, c2.as<TableNode>()->children.size());
 
-  const auto &c3 = *c2.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c3 = *c2.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(1, c3.as<TableNode>()->children.size());
 
-  const auto &c4 = *c3.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c4 = *c3.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(0, c4.as<TableNode>()->children.size());
 }
 
@@ -201,24 +201,24 @@ TEST(JsonParser, ComplexTable) {
   ASSERT_NE(root, nullptr);
   ASSERT_EQ(3, root->children.size());
 
-  auto array = root->getValue<ListNode>("array");
+  auto array = root->getChild<ListNode>("array");
   ASSERT_NE(array, nullptr);
   ASSERT_EQ(3, array->children.size());
 
-  auto table1 = root->getValue<TableNode>("table1");
+  auto table1 = root->getChild<TableNode>("table1");
   ASSERT_NE(table1, nullptr);
   ASSERT_EQ(2, table1->children.size());
 
-  auto table2 = root->getValue<TableNode>("table2");
+  auto table2 = root->getChild<TableNode>("table2");
   ASSERT_NE(table2, nullptr);
   ASSERT_EQ(1, table2->children.size());
 
-  auto table1_a = table1->getValue<StringNode>("a");
-  auto table1_b = table1->getValue<StringNode>("b");
+  auto table1_a = table1->getChild<StringNode>("a");
+  auto table1_b = table1->getChild<StringNode>("b");
   ASSERT_TRUE(table1_a && table1_a->value == "A");
   ASSERT_TRUE(table1_b && table1_b->value == "B");
 
-  auto table3 = table2->getValue<TableNode>("table3");
+  auto table3 = table2->getChild<TableNode>("table3");
   ASSERT_NE(table3, nullptr);
   ASSERT_EQ(0, table3->children.size());
 }

@@ -20,7 +20,7 @@ TableNode *TableNode::getSection(TomlPathSlice path) {
     return this;
   }
   const std::string &head = *path.head();
-  auto child = getValue<TomlNode>(head);
+  auto child = getChild<TomlNode>(head);
   if (!child) {
     if (path.simple() && path.isArrayOfTables) {
       auto newChild = std::make_unique<ListNode>();
@@ -66,13 +66,13 @@ bool TableNode::putValue(TomlPathSlice path, std::unique_ptr<TomlNode> value) {
   }
   const std::string &key = *path.head();
   if (path.simple()) {
-    if (getValue<TomlNode>(key)) {
+    if (getChild<TomlNode>(key)) {
       return false;
     }
     children[key] = std::move(value);
     return true;
   }
-  if (auto existing = getValue<TomlNode>(key)) {
+  if (auto existing = getChild<TomlNode>(key)) {
     if (auto existingTable = existing->as<TableNode>()) {
       return existingTable->putValue(path.tail(), std::move(value));
     }

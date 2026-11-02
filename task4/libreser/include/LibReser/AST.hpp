@@ -3,7 +3,12 @@
 
 #include <algorithm>
 #include <concepts>
+#include <memory>
+#include <string>
 #include <type_traits>
+#include <unordered_map>
+#include <vector>
+
 namespace reser {
 
 template <typename AstNodeType, typename Visitor>
@@ -67,6 +72,62 @@ class PrimitiveNode : public AstNodeImpl<PrimitiveNode<Primitive, AstNodeType, A
   PrimitiveNode(Primitive value) : value(std::move(value)) {}
 
   Primitive value;
+};
+
+template <typename Self, typename AstNodeType, typename AstVisitor, AstNodeType NodeType>
+class ListNodeImpl : public AstNodeImpl<Self, AstNodeType, AstVisitor, NodeType> {
+ public:
+  using ChildVector = std::vector<std::unique_ptr<AstNode<AstNodeType, AstVisitor>>>;
+
+  ListNodeImpl(ChildVector children) : children(std::move(children)) {}
+  ListNodeImpl() = default;
+
+  template <IsAstNode<AstNodeType, AstVisitor> T>
+  const T *getChild(size_t index = 0) const {
+    if (children.size() <= index) {
+      return nullptr;
+    }
+    return children[index]->template as<T>();
+  }
+
+  template <IsAstNode<AstNodeType, AstVisitor> T>
+  T *getChild(size_t index = 0) {
+    if (children.size() <= index) {
+      return nullptr;
+    }
+    return children[index]->template as<T>();
+  }
+
+  size_t nValues() const { return children.size(); }
+  bool empty() const { return children.empty(); }
+
+  ChildVector children;
+};
+
+template <typename Self, typename AstNodeType, typename AstVisitor, AstNodeType NodeType>
+class TableNodeImpl : public AstNodeImpl<Self, AstNodeType, AstVisitor, NodeType> {
+ public:
+  using ChildMap = std::unordered_map<std::string, std::unique_ptr<AstNode<AstNodeType, AstVisitor>>>;
+
+  TableNodeImpl(ChildMap children) : children(std::move(children)) {}
+  TableNodeImpl() = default;
+
+  template <IsAstNode<AstNodeType, AstVisitor> T>
+  const T *getChild(std::string_view name) const {
+    auto child = children.find(std::string(name));
+    return child == children.end() ? nullptr : child->second->template as<T>();
+  }
+
+  template <IsAstNode<AstNodeType, AstVisitor> T>
+  T *getChild(std::string_view key) {
+    auto child = children.find(std::string(key));
+    return child == children.end() ? nullptr : child->second->template as<T>();
+  }
+
+  size_t nValues() const { return children.size(); }
+  bool empty() const { return children.empty(); }
+
+  ChildMap children;
 };
 
 template <typename Self, typename AstNodeType, typename AstVisitor, AstNodeType NodeType>

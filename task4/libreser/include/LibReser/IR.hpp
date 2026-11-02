@@ -2,76 +2,65 @@
 #define __LIBRESER_IR_HPP__
 
 #include <cstdint>
-#include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
+#include "LibReser/AST.hpp"
 #include "LibReser/DateTime.hpp"
 
 namespace reser {
 namespace IR {
 
+enum class NodeType {
+  Null,
+  String,
+  Int,
+  Float,
+  Bool,
+  DateTime,
+  List,
+  Table,
+  Tag,
+};
+
 class Visitor;
 
-class Node {
- public:
-  virtual ~Node() = default;
-  virtual void accept(Visitor &visitor) const = 0;
-};
-
-template <typename Self>
-class NodeImpl : public Node {
- public:
-  void accept(Visitor &visitor) const override;
-};
+using Node = AstNode<NodeType, Visitor>;
 
 template <typename T>
-class PrimitiveNode : public NodeImpl<PrimitiveNode<T>> {
- public:
-  PrimitiveNode(T value) : value(std::move(value)) {}
+concept IsNode = IsAstNode<T, NodeType, Visitor>;
 
-  T value;
+template <typename Self, NodeType Type>
+using NodeImpl = AstNodeImpl<Self, NodeType, Visitor, Type>;
+
+template <typename Self, NodeType Type>
+using PrimitiveNode = PrimitiveNode<Self, NodeType, Visitor, Type>;
+
+class NullNode : public NodeImpl<NullNode, NodeType::Null> {};
+using StringNode = PrimitiveNode<std::string, NodeType::String>;
+using IntNode = PrimitiveNode<std::int64_t, NodeType::Int>;
+using FloatNode = PrimitiveNode<double, NodeType::Float>;
+using BoolNode = PrimitiveNode<bool, NodeType::Bool>;
+using DateTimeNode = PrimitiveNode<DateTime, NodeType::DateTime>;
+class ListNode : public ListNodeImpl<ListNode, NodeType, Visitor, NodeType::List> {
+  using ListNodeImpl<ListNode, NodeType, Visitor, NodeType::List>::ListNodeImpl;
 };
-
-class NullNode : public NodeImpl<NullNode> {};
-using StringNode = PrimitiveNode<std::string>;
-using IntNode = PrimitiveNode<std::int64_t>;
-using FloatNode = PrimitiveNode<double>;
-using BoolNode = PrimitiveNode<bool>;
-using DateTimeNode = PrimitiveNode<DateTime>;
-
-class TableNode : public NodeImpl<TableNode> {
- public:
-  using ChildMap = std::unordered_map<std::string, std::unique_ptr<Node>>;
-
-  TableNode(ChildMap map) : children(std::move(map)) {}
-  TableNode() = default;
-
-  ChildMap children;
+class TableNode : public TableNodeImpl<TableNode, NodeType, Visitor, NodeType::Table> {
+  using TableNodeImpl<TableNode, NodeType, Visitor, NodeType::Table>::TableNodeImpl;
 };
-
-class ListNode : public NodeImpl<ListNode> {
- public:
-  using ChildVector = std::vector<std::unique_ptr<Node>>;
-
-  ListNode(ChildVector vector) : children(std::move(vector)) {}
-  ListNode() = default;
-
-  ChildVector children;
-};
-
-class TagNode : public NodeImpl<TagNode> {
+class TagNode : public ListNodeImpl<TagNode, NodeType, Visitor, NodeType::Tag> {
  public:
   using AttrMap = std::unordered_map<std::string, std::string>;
-  using ChildVector = std::vector<std::unique_ptr<Node>>;
 
   TagNode(std::string name, ChildVector children, AttrMap attributes)
-      : name(std::move(name)), children(std::move(children)), attributes(std::move(attributes)) {}
+      : ListNodeImpl<TagNode, NodeType, Visitor, NodeType::Tag>(std::move(children)),
+        name(std::move(name)),
+        attributes(std::move(attributes)) {}
+  TagNode(std::string name, ChildVector children)
+      : ListNodeImpl<TagNode, NodeType, Visitor, NodeType::Tag>(std::move(children)), name(std::move(name)) {}
   TagNode(std::string name) : name(std::move(name)) {}
 
   std::string name;
-  ChildVector children;
   AttrMap attributes;
 };
 
@@ -87,11 +76,6 @@ class Visitor {
   virtual void visit(const ListNode &node) = 0;
   virtual void visit(const TagNode &node) = 0;
 };
-
-template <typename Self>
-void NodeImpl<Self>::accept(Visitor &visitor) const {
-  visitor.visit(*static_cast<const Self *>(this));
-}
 
 };  // namespace IR
 

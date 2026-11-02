@@ -62,19 +62,26 @@ class TagNode : public XmlNodeImpl<TagNode, XmlNodeType::Tag> {
 
   size_t nAttributes() const { return attributes.size(); }
   size_t nChildren() const { return children.size(); }
-
-  template <IsXmlNode T>
-  const T *getChild() const {
-    return children.empty() ? nullptr : children[0]->as<T>();
-  }
-
-  template <XmlNode>
-  const XmlNode *getChild() const {
-    return children.empty() ? nullptr : &*children[0];
-  }
+  bool empty() const;
 
   bool hasText() const;
-  bool empty() const;
+
+  template <IsXmlNode T>
+  const T *getChild(size_t index = 0) const {
+    if (children.size() <= index) {
+      return nullptr;
+    }
+    return children[index]->template as<T>();
+  }
+
+  template <IsXmlNode T>
+  T *getChild(size_t index = 0) {
+    if (children.size() <= index) {
+      return nullptr;
+    }
+    return children[index]->template as<T>();
+  }
+
   void normalize();
 
   std::string name;

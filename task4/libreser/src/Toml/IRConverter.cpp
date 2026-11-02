@@ -28,24 +28,24 @@ static std::vector<TablePattern> tagPatterns = {
               if (node.nValues() != 2) {
                 return false;
               }
-              auto type = node.getValue<StringNode>(token::Type);
+              auto type = node.getChild<StringNode>(token::Type);
               if (!type || type->value != token::Quote) {
                 return false;
               }
-              if (auto inner = node.getValue<TableNode>(token::Inner)) {
+              if (auto inner = node.getChild<TableNode>(token::Inner)) {
                 return matcher.isSpecial(*inner);
               }
               return matcher.getRecursionDepth() == 1;
             },
         .apply = [](const TableNode &node, Ast2IR &converter) -> std::unique_ptr<IR::Node> {
-          auto inner = node.getValue<TomlNode>(token::Inner);
+          auto inner = node.getChild<TomlNode>(token::Inner);
           return inner ? converter.toIR(*inner, true) : nullptr;
         },
     },
     {
         .match =
             [](const TableNode &node, const PatternMatcher &) {
-              auto type = node.getValue<StringNode>(token::Type);
+              auto type = node.getChild<StringNode>(token::Type);
               return node.nValues() == 1 && type && type->value == token::Null;
             },
         .apply = [](const TableNode &, Ast2IR &) -> std::unique_ptr<IR::Node> {
@@ -55,10 +55,10 @@ static std::vector<TablePattern> tagPatterns = {
     {
         .match =
             [](const TableNode &node, const PatternMatcher &) {
-              auto type = node.getValue<StringNode>(token::Type);
-              auto name = node.getValue<StringNode>(token::TagName);
-              auto attributes = node.getValue<TableNode>(token::TagAttributes);
-              auto children = node.getValue<ListNode>(token::TagChildren);
+              auto type = node.getChild<StringNode>(token::Type);
+              auto name = node.getChild<StringNode>(token::TagName);
+              auto attributes = node.getChild<TableNode>(token::TagAttributes);
+              auto children = node.getChild<ListNode>(token::TagChildren);
 
               if (node.nValues() != 4) {
                 return false;
@@ -86,9 +86,9 @@ static std::vector<TablePattern> tagPatterns = {
               return true;
             },
         .apply = [](const TableNode &node, Ast2IR &converter) -> std::unique_ptr<IR::Node> {
-          auto nameNode = node.getValue<StringNode>(token::TagName);
-          auto attributes = node.getValue<TableNode>(token::TagAttributes);
-          auto children = node.getValue<ListNode>(token::TagChildren);
+          auto nameNode = node.getChild<StringNode>(token::TagName);
+          auto attributes = node.getChild<TableNode>(token::TagAttributes);
+          auto children = node.getChild<ListNode>(token::TagChildren);
 
           std::string name;
           if (nameNode) {

@@ -2,9 +2,7 @@
 #define __LIBRESER_TOML_AST_HPP__
 
 #include <cstdint>
-#include <cstring>
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 #include "LibReser/AST.hpp"
@@ -81,41 +79,18 @@ using FloatNode = TomlPrimitiveNode<double, TomlNodeType::Float>;
 using BoolNode = TomlPrimitiveNode<bool, TomlNodeType::Bool>;
 using DateTimeNode = TomlPrimitiveNode<DateTime, TomlNodeType::DateTime>;
 
-class TableNode : public TomlNodeImpl<TableNode, TomlNodeType::Table> {
+class TableNode : public TableNodeImpl<TableNode, TomlNodeType, AstVisitor, TomlNodeType::Table> {
+  using TableNodeImpl<TableNode, TomlNodeType, AstVisitor, TomlNodeType::Table>::TableNodeImpl;
+
  public:
-  using ChildMap = std::unordered_map<std::string, std::unique_ptr<TomlNode>>;
-
-  TableNode() {}
-  TableNode(ChildMap children) : children(std::move(children)) {}
-
-  template <typename T>
-  const T *getValue(std::string_view name) const {
-    auto child = children.find(std::string(name));
-    return child == children.end() ? nullptr : child->second->as<T>();
-  }
-
-  template <typename T>
-  T *getValue(std::string_view name) {
-    auto child = children.find(std::string(name));
-    return child == children.end() ? nullptr : child->second->as<T>();
-  }
-
-  inline size_t nValues() const { return children.size(); }
-
   TableNode *getSection(TomlPathSlice path);
   bool putValue(TomlPathSlice path, std::unique_ptr<TomlNode> value);
-
-  ChildMap children;
 };
 
-class ListNode : public TomlNodeImpl<ListNode, TomlNodeType::List> {
+class ListNode : public ListNodeImpl<ListNode, TomlNodeType, AstVisitor, TomlNodeType::List> {
+  using ListNodeImpl<ListNode, TomlNodeType, AstVisitor, TomlNodeType::List>::ListNodeImpl;
+
  public:
-  using ChildVector = std::vector<std::unique_ptr<TomlNode>>;
-
-  ListNode() {}
-  ListNode(ChildVector children) : children(std::move(children)) {}
-
-  bool empty() const { return children.empty(); }
   bool isOfTables() const {
     if (children.empty()) {
       return false;
@@ -129,8 +104,6 @@ class ListNode : public TomlNodeImpl<ListNode, TomlNodeType::List> {
   }
 
   TableNode *getSection(TomlPathSlice path);
-
-  ChildVector children;
 };
 
 class AstVisitor {

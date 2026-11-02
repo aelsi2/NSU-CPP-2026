@@ -41,7 +41,7 @@ TEST(TomlParser, Comments) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<TableNode>("value");
+  auto value = root->getChild<TableNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_TRUE(value->children.empty());
 }
@@ -59,7 +59,7 @@ TEST(TomlParser, BoolTrue) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<BoolNode>("value");
+  auto value = root->getChild<BoolNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(true, value->value);
 }
@@ -71,7 +71,7 @@ TEST(TomlParser, BoolFalse) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<BoolNode>("value");
+  auto value = root->getChild<BoolNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(false, value->value);
 }
@@ -83,7 +83,7 @@ TEST(TomlParser, EmptyInlineArray) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<ListNode>("value");
+  auto value = root->getChild<ListNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_TRUE(value->children.empty());
 }
@@ -95,7 +95,7 @@ TEST(TomlParser, EmptyInlineTable) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<TableNode>("value");
+  auto value = root->getChild<TableNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_TRUE(value->children.empty());
 }
@@ -107,7 +107,7 @@ TEST(TomlParser, Int0) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<IntNode>("value");
+  auto value = root->getChild<IntNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(0, value->value);
 }
@@ -119,7 +119,7 @@ TEST(TomlParser, Int69420) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<IntNode>("value");
+  auto value = root->getChild<IntNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(69420, value->value);
 }
@@ -131,7 +131,7 @@ TEST(TomlParser, IntMinus100500) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<IntNode>("value");
+  auto value = root->getChild<IntNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(-100500, value->value);
 }
@@ -143,7 +143,7 @@ TEST(TomlParser, IntUnderscores) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<IntNode>("value");
+  auto value = root->getChild<IntNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(1001, value->value);
 }
@@ -155,7 +155,7 @@ TEST(TomlParser, IntHexadecimal) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<IntNode>("value");
+  auto value = root->getChild<IntNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(0xf0, value->value);
 }
@@ -167,7 +167,7 @@ TEST(TomlParser, IntOctal) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<IntNode>("value");
+  auto value = root->getChild<IntNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(0123, value->value);
 }
@@ -179,7 +179,7 @@ TEST(TomlParser, IntBinary) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<IntNode>("value");
+  auto value = root->getChild<IntNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(0b11100011, value->value);
 }
@@ -191,7 +191,7 @@ TEST(TomlParser, Float0) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<FloatNode>("value");
+  auto value = root->getChild<FloatNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(0.0, value->value);
 }
@@ -203,7 +203,7 @@ TEST(TomlParser, Float69420_67) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<FloatNode>("value");
+  auto value = root->getChild<FloatNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(69420.67, value->value);
 }
@@ -215,7 +215,7 @@ TEST(TomlParser, FloatMinus65536_32768) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<FloatNode>("value");
+  auto value = root->getChild<FloatNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(65536.32768, value->value);
 }
@@ -227,7 +227,7 @@ TEST(TomlParser, FloatExponent) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<FloatNode>("value");
+  auto value = root->getChild<FloatNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(1e+10, value->value);
 }
@@ -239,7 +239,7 @@ TEST(TomlParser, FloatNegative_NegativeExponent) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<FloatNode>("value");
+  auto value = root->getChild<FloatNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(-1e-10, value->value);
 }
@@ -251,7 +251,7 @@ TEST(TomlParser, FloatFractionalExponent) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<FloatNode>("value");
+  auto value = root->getChild<FloatNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(-12345.12345e-10, value->value);
 }
@@ -263,7 +263,7 @@ TEST(TomlParser, FloatUnderscores) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<FloatNode>("value");
+  auto value = root->getChild<FloatNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(-12345.12345e-10, value->value);
 }
@@ -275,7 +275,7 @@ TEST(TomlParser, FloatNan) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<FloatNode>("value");
+  auto value = root->getChild<FloatNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_TRUE(std::isnan(value->value));
 }
@@ -287,7 +287,7 @@ TEST(TomlParser, FloatPlusInfinity) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<FloatNode>("value");
+  auto value = root->getChild<FloatNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(std::numeric_limits<double>().infinity(), value->value);
 }
@@ -299,7 +299,7 @@ TEST(TomlParser, FloatMinusInfinity) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<FloatNode>("value");
+  auto value = root->getChild<FloatNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(-std::numeric_limits<double>().infinity(), value->value);
 }
@@ -311,7 +311,7 @@ TEST(TomlParser, EmptyString) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<StringNode>("value");
+  auto value = root->getChild<StringNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ("", value->value);
 }
@@ -323,7 +323,7 @@ TEST(TomlParser, String) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<StringNode>("value");
+  auto value = root->getChild<StringNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ("Hello", value->value);
 }
@@ -335,7 +335,7 @@ TEST(TomlParser, StringEscape) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<StringNode>("value");
+  auto value = root->getChild<StringNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ("Hello\n", value->value);
 }
@@ -347,7 +347,7 @@ TEST(TomlParser, StringEscapeQuotes) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<StringNode>("value");
+  auto value = root->getChild<StringNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ("\"He\\llo\"", value->value);
 }
@@ -359,7 +359,7 @@ TEST(TomlParser, StringApos) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<StringNode>("value");
+  auto value = root->getChild<StringNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(R"(C:\Users\aelsi2\Documents\projects\cpp\NSU-CPP-2026)", value->value);
 }
@@ -371,7 +371,7 @@ TEST(TomlParser, StringAposTriple) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<StringNode>("value");
+  auto value = root->getChild<StringNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(R"("I [dw]on't need \d{2} apples")", value->value);
 }
@@ -383,7 +383,7 @@ TEST(TomlParser, StringQuoteTriple) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<StringNode>("value");
+  auto value = root->getChild<StringNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(R"("I [dw]on't need apples")", value->value);
 }
@@ -395,7 +395,7 @@ TEST(TomlParser, EmptyKey) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<StringNode>("");
+  auto value = root->getChild<StringNode>("");
   ASSERT_NE(value, nullptr);
 }
 
@@ -406,7 +406,7 @@ TEST(TomlParser, ArrayOfFloats) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<ListNode>("value");
+  auto value = root->getChild<ListNode>("value");
   ASSERT_NE(value, nullptr);
 
   ASSERT_EQ(6, value->children.size());
@@ -422,7 +422,7 @@ TEST(TomlParser, NestedInlineArray) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<ListNode>("value");
+  auto value = root->getChild<ListNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(1, value->children.size());
 
@@ -456,19 +456,19 @@ TEST(TomlParser, ArraySection) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto array = root->getValue<ListNode>("array");
+  auto array = root->getChild<ListNode>("array");
   ASSERT_NE(array, nullptr);
   ASSERT_EQ(2, array->children.size());
 
   const auto &c1 = *array->children[0];
   ASSERT_TRUE(c1.isa<TableNode>());
-  auto value1 = c1.as<TableNode>()->getValue<IntNode>("value");
+  auto value1 = c1.as<TableNode>()->getChild<IntNode>("value");
   ASSERT_NE(value1, nullptr);
   ASSERT_EQ(1, value1->value);
   
   const auto &c2 = *array->children[1];
   ASSERT_TRUE(c1.isa<TableNode>());
-  auto value2 = c2.as<TableNode>()->getValue<IntNode>("value");
+  auto value2 = c2.as<TableNode>()->getChild<IntNode>("value");
   ASSERT_NE(value2, nullptr);
   ASSERT_EQ(2, value2->value);
 }
@@ -484,22 +484,22 @@ TEST(TomlParser, NestedArraySection) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto array = root->getValue<ListNode>("array");
+  auto array = root->getChild<ListNode>("array");
   ASSERT_NE(array, nullptr);
   ASSERT_EQ(1, array->children.size());
 
   const auto &array_el = *array->children[0];
   ASSERT_TRUE(array_el.isa<TableNode>());
-  auto sub = array_el.as<TableNode>()->getValue<TableNode>("sub");
+  auto sub = array_el.as<TableNode>()->getChild<TableNode>("sub");
   ASSERT_NE(sub, nullptr);
   
-  auto sub_array = sub->getValue<ListNode>("array");
+  auto sub_array = sub->getChild<ListNode>("array");
   ASSERT_NE(sub_array, nullptr);
   ASSERT_EQ(1, sub_array->children.size());
   
   const auto &sub_array_el = *sub_array->children[0];
   ASSERT_TRUE(sub_array_el.isa<TableNode>());
-  auto value = sub_array_el.as<TableNode>()->getValue<IntNode>("value");
+  auto value = sub_array_el.as<TableNode>()->getChild<IntNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(2, value->value);
 }
@@ -511,20 +511,20 @@ TEST(TomlParser, NestedTable) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<TableNode>("value");
+  auto value = root->getChild<TableNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(1, value->children.size());
 
-  const auto &c1 = *value->getValue<TableNode>("a");
+  const auto &c1 = *value->getChild<TableNode>("a");
   ASSERT_EQ(1, c1.as<TableNode>()->children.size());
 
-  const auto &c2 = *c1.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c2 = *c1.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(1, c2.as<TableNode>()->children.size());
 
-  const auto &c3 = *c2.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c3 = *c2.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(1, c3.as<TableNode>()->children.size());
 
-  const auto &c4 = *c3.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c4 = *c3.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(0, c4.as<TableNode>()->children.size());
 }
 
@@ -535,20 +535,20 @@ TEST(TomlParser, NestedInlineTablePath) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<TableNode>("value");
+  auto value = root->getChild<TableNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(1, value->children.size());
 
-  const auto &c1 = *value->getValue<TableNode>("a");
+  const auto &c1 = *value->getChild<TableNode>("a");
   ASSERT_EQ(1, c1.as<TableNode>()->children.size());
 
-  const auto &c2 = *c1.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c2 = *c1.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(1, c2.as<TableNode>()->children.size());
 
-  const auto &c3 = *c2.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c3 = *c2.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(1, c3.as<TableNode>()->children.size());
 
-  const auto &c4 = *c3.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c4 = *c3.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(0, c4.as<TableNode>()->children.size());
 }
 
@@ -559,20 +559,20 @@ TEST(TomlParser, NestedTableSections) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<TableNode>("value");
+  auto value = root->getChild<TableNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(1, value->children.size());
 
-  const auto &c1 = *value->getValue<TableNode>("a");
+  const auto &c1 = *value->getChild<TableNode>("a");
   ASSERT_EQ(1, c1.as<TableNode>()->children.size());
 
-  const auto &c2 = *c1.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c2 = *c1.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(1, c2.as<TableNode>()->children.size());
 
-  const auto &c3 = *c2.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c3 = *c2.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(1, c3.as<TableNode>()->children.size());
 
-  const auto &c4 = *c3.as<TableNode>()->getValue<TableNode>("a");
+  const auto &c4 = *c3.as<TableNode>()->getChild<TableNode>("a");
   ASSERT_EQ(0, c4.as<TableNode>()->children.size());
 }
 
@@ -594,28 +594,28 @@ TEST(TomlParser, ComplexTable) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<TableNode>("value");
+  auto value = root->getChild<TableNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(3, value->children.size());
 
-  auto array = value->getValue<ListNode>("array");
+  auto array = value->getChild<ListNode>("array");
   ASSERT_NE(array, nullptr);
   ASSERT_EQ(3, array->children.size());
 
-  auto table1 = value->getValue<TableNode>("table1");
+  auto table1 = value->getChild<TableNode>("table1");
   ASSERT_NE(table1, nullptr);
   ASSERT_EQ(2, table1->children.size());
 
-  auto table2 = value->getValue<TableNode>("table2");
+  auto table2 = value->getChild<TableNode>("table2");
   ASSERT_NE(table2, nullptr);
   ASSERT_EQ(1, table2->children.size());
 
-  auto table1_a = table1->getValue<StringNode>("a");
-  auto table1_b = table1->getValue<StringNode>("b");
+  auto table1_a = table1->getChild<StringNode>("a");
+  auto table1_b = table1->getChild<StringNode>("b");
   ASSERT_TRUE(table1_a && table1_a->value == "A");
   ASSERT_TRUE(table1_b && table1_b->value == "B");
 
-  auto table3 = table2->getValue<TableNode>("table3");
+  auto table3 = table2->getChild<TableNode>("table3");
   ASSERT_NE(table3, nullptr);
   ASSERT_EQ(0, table3->children.size());
 }
@@ -632,28 +632,28 @@ TEST(TomlParser, ComplexTablePaths) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<TableNode>("value");
+  auto value = root->getChild<TableNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(3, value->children.size());
 
-  auto array = value->getValue<ListNode>("array");
+  auto array = value->getChild<ListNode>("array");
   ASSERT_NE(array, nullptr);
   ASSERT_EQ(3, array->children.size());
 
-  auto table1 = value->getValue<TableNode>("table1");
+  auto table1 = value->getChild<TableNode>("table1");
   ASSERT_NE(table1, nullptr);
   ASSERT_EQ(2, table1->children.size());
 
-  auto table2 = value->getValue<TableNode>("table2");
+  auto table2 = value->getChild<TableNode>("table2");
   ASSERT_NE(table2, nullptr);
   ASSERT_EQ(1, table2->children.size());
 
-  auto table1_a = table1->getValue<StringNode>("a");
-  auto table1_b = table1->getValue<StringNode>("b");
+  auto table1_a = table1->getChild<StringNode>("a");
+  auto table1_b = table1->getChild<StringNode>("b");
   ASSERT_TRUE(table1_a && table1_a->value == "A");
   ASSERT_TRUE(table1_b && table1_b->value == "B");
 
-  auto table3 = table2->getValue<TableNode>("table3");
+  auto table3 = table2->getChild<TableNode>("table3");
   ASSERT_NE(table3, nullptr);
   ASSERT_EQ(0, table3->children.size());
 }
@@ -675,28 +675,28 @@ TEST(TomlParser, ComplexTableSections) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<TableNode>("value");
+  auto value = root->getChild<TableNode>("value");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(3, value->children.size());
 
-  auto array = value->getValue<ListNode>("array");
+  auto array = value->getChild<ListNode>("array");
   ASSERT_NE(array, nullptr);
   ASSERT_EQ(3, array->children.size());
 
-  auto table1 = value->getValue<TableNode>("table1");
+  auto table1 = value->getChild<TableNode>("table1");
   ASSERT_NE(table1, nullptr);
   ASSERT_EQ(2, table1->children.size());
 
-  auto table2 = value->getValue<TableNode>("table2");
+  auto table2 = value->getChild<TableNode>("table2");
   ASSERT_NE(table2, nullptr);
   ASSERT_EQ(1, table2->children.size());
 
-  auto table1_a = table1->getValue<StringNode>("a");
-  auto table1_b = table1->getValue<StringNode>("b");
+  auto table1_a = table1->getChild<StringNode>("a");
+  auto table1_b = table1->getChild<StringNode>("b");
   ASSERT_TRUE(table1_a && table1_a->value == "A");
   ASSERT_TRUE(table1_b && table1_b->value == "B");
 
-  auto table3 = table2->getValue<TableNode>("table3");
+  auto table3 = table2->getChild<TableNode>("table3");
   ASSERT_NE(table3, nullptr);
   ASSERT_EQ(0, table3->children.size());
 }
@@ -708,7 +708,7 @@ TEST(TomlParser, QuotedKey) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<BoolNode>("this is a quoted key");
+  auto value = root->getChild<BoolNode>("this is a quoted key");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(true, value->value);
 }
@@ -720,7 +720,7 @@ TEST(TomlParser, AposKey) {
   ASSERT_TRUE(node && node->isa<TableNode>());
   auto root = node->as<TableNode>();
 
-  auto value = root->getValue<BoolNode>("\\this is an apostrophe quoted key\\");
+  auto value = root->getChild<BoolNode>("\\this is an apostrophe quoted key\\");
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(true, value->value);
 }

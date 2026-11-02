@@ -22,6 +22,8 @@ std::unique_ptr<TagNode> Parser::parseDocument() {
       parseComment();
     } else if (state.match('<')) {
       break;
+    } else {
+      state.error("The document must contain a root node.");
     }
   }
   return parseTagNode();

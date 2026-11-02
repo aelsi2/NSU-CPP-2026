@@ -2,7 +2,10 @@ find_package(GTest REQUIRED)
 
 add_executable(
   LibReserTest
-  test.cpp
+  main.cpp
+  Json/Parser.cpp
+  Xml/Parser.cpp
+  Toml/Parser.cpp
 )
 
 set_target_properties(LibReserTest PROPERTIES OUTPUT_NAME "libreser_test")

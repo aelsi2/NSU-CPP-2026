@@ -20,7 +20,7 @@ void Printer::visit(const TagNode &node) {
   for (const auto &attr : node.attributes) {
     stream << " " << attr.first << "=\"" << xmlEscape(attr.second, XmlEscapeContext::Attribute) << "\"";
   }
-  if (node.children.empty()) {
+  if (node.empty()) {
     stream << "/>";
     return;
   } else {

@@ -73,40 +73,9 @@ class TagNode : public XmlNodeImpl<TagNode, XmlNodeType::Tag> {
     return children.empty() ? nullptr : &*children[0];
   }
 
-  bool hasText() const {
-    for (const auto &child : children) {
-      if (child->isa<TextNode>()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  void normalize() {
-    if (children.size() > 1) {
-      bool allSpace = true;
-      for (const auto &child : children) {
-        if (child->isa<TextNode>() && !child->as<TextNode>()->isSpace()) {
-          allSpace = false;
-          break;
-        }
-      }
-      if (allSpace) {
-        for (auto iter = children.begin(); iter != children.end();) {
-          if ((*iter)->isa<TextNode>()) {
-            iter = children.erase(iter);
-          } else {
-            iter++;
-          }
-        }
-      }
-    }
-    if (children.size() == 1 && getChild<TextNode>()) {
-      if (getChild<TextNode>()->value.empty()) {
-        children.clear();
-      }
-    }
-  }
+  bool hasText() const;
+  bool empty() const;
+  void normalize();
 
   std::string name;
   ChildVector children;

@@ -27,19 +27,6 @@ std::unique_ptr<TagNode> Parser::parseDocument() {
   return parseTagNode();
 }
 
-std::unique_ptr<XmlNode> Parser::parseNode() {
-  while (state.peek()) {
-    if (state.match2('<', '!')) {
-      parseComment();
-    } else if (state.match('<')) {
-      return parseTagNode();
-    } else {
-      return parseTextNode();
-    }
-  }
-  state.error("Expected node.");
-}
-
 std::unique_ptr<TagNode> Parser::parseTagNode() {
   Position start = state.pos();
 
@@ -72,11 +59,16 @@ std::unique_ptr<TagNode> Parser::parseTagNode() {
     }
   }
 
-  while (true) {
-    if (state.match2('<', '/')) {
+  while (state.peek()) {
+    if (state.match2('<', '!')) {
+      parseComment();
+    } else if (state.match2('<', '/')) {
       break;
+    } else if (state.match('<')) {
+      node->children.push_back(parseTagNode());
+    } else {
+      node->children.push_back(parseTextNode());
     }
-    node->children.push_back(parseNode());
   }
 
   node->normalize();

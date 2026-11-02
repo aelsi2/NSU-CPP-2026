@@ -10,6 +10,7 @@ target_sources(
     src/Json/Printer.cpp
     src/Json/Parser.cpp
     src/Json/Backend.cpp
+    src/Xml/AST.cpp
     src/Xml/IRConverter.cpp
     src/Xml/Printer.cpp
     src/Xml/Parser.cpp

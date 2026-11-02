@@ -21,7 +21,6 @@ class Parser {
   std::string parseName();
   std::pair<std::string, std::string> parseAttribute();
   std::unique_ptr<TagNode> parseDocument();
-  std::unique_ptr<XmlNode> parseNode();
   std::unique_ptr<TagNode> parseTagNode();
   std::unique_ptr<TextNode> parseTextNode();
   void parseComment();

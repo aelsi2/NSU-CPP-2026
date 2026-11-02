@@ -420,7 +420,7 @@ std::string Parser::parseQuoteString(bool allowMultiline) {
   Position start = state.pos();
 
   size_t quoteCount = 0;
-  while (state.peek() == '"' && quoteCount <= 3) {
+  while (state.peek() == '"' && quoteCount < 3) {
     quoteCount++;
     state.consume();
   }
@@ -490,7 +490,7 @@ std::string Parser::parseAposString(bool allowMultiline) {
   Position start = state.pos();
 
   size_t quoteCount = 0;
-  while (state.peek() == '\'' && quoteCount <= 3) {
+  while (state.peek() == '\'' && quoteCount < 3) {
     quoteCount++;
     state.consume();
   }

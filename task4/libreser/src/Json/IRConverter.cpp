@@ -90,10 +90,10 @@ static std::vector<TablePattern> tagPatterns = {
                 return false;
               }
               for (auto &attr : attributes->children) {
-                if (!attr.second->as<StringNode>()) {
+                if (!isValidXmlName(attr.first)) {
                   return false;
                 }
-                if (!isValidXmlName(attr.second->as<StringNode>()->value)) {
+                if (!attr.second->as<StringNode>()) {
                   return false;
                 }
               }

@@ -3,10 +3,10 @@
 
 #include <algorithm>
 #include <concepts>
+#include <map>
 #include <memory>
 #include <string>
 #include <type_traits>
-#include <unordered_map>
 #include <vector>
 
 namespace reser {
@@ -107,7 +107,7 @@ class ListNodeImpl : public AstNodeImpl<Self, AstNodeType, AstVisitor, NodeType>
 template <typename Self, typename AstNodeType, typename AstVisitor, AstNodeType NodeType>
 class TableNodeImpl : public AstNodeImpl<Self, AstNodeType, AstVisitor, NodeType> {
  public:
-  using ChildMap = std::unordered_map<std::string, std::unique_ptr<AstNode<AstNodeType, AstVisitor>>>;
+  using ChildMap = std::map<std::string, std::unique_ptr<AstNode<AstNodeType, AstVisitor>>>;
 
   TableNodeImpl(ChildMap children) : children(std::move(children)) {}
   TableNodeImpl() = default;

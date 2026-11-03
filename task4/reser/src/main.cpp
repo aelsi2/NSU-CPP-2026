@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 
 #include "LibReser/Format.hpp"
 #include "LibReser/Json/Backend.hpp"
@@ -8,7 +9,7 @@
 
 using namespace reser;
 
-static std::unordered_map<std::string, FormatBackend &> Backends = {
+static std::map<std::string, FormatBackend &> Backends = {
     {"json", json::Backend},
     {"xml", xml::Backend},
     {"toml", toml::Backend},

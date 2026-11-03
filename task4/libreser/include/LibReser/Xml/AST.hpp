@@ -3,7 +3,7 @@
 
 #include <cctype>
 #include <memory>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 #include "LibReser/AST.hpp"
@@ -45,7 +45,7 @@ class TextNode : public XmlNodeImpl<TextNode, XmlNodeType::Text> {
 class TagNode : public XmlNodeImpl<TagNode, XmlNodeType::Tag> {
  public:
   using ChildVector = std::vector<std::unique_ptr<XmlNode>>;
-  using AttrMap = std::unordered_map<std::string, std::string>;
+  using AttrMap = std::map<std::string, std::string>;
 
   TagNode(std::string name, ChildVector children, AttrMap attributes)
       : name(std::move(name)), children(std::move(children)), attributes(std::move(attributes)) {

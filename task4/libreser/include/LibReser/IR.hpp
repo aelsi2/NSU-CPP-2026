@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <string>
-#include <unordered_map>
 
 #include "LibReser/AST.hpp"
 #include "LibReser/DateTime.hpp"
@@ -50,7 +49,7 @@ class TableNode : public TableNodeImpl<TableNode, NodeType, Visitor, NodeType::T
 };
 class TagNode : public ListNodeImpl<TagNode, NodeType, Visitor, NodeType::Tag> {
  public:
-  using AttrMap = std::unordered_map<std::string, std::string>;
+  using AttrMap = std::map<std::string, std::string>;
 
   TagNode(std::string name, ChildVector children, AttrMap attributes)
       : ListNodeImpl<TagNode, NodeType, Visitor, NodeType::Tag>(std::move(children)),

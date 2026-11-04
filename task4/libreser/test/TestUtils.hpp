@@ -1,3 +1,6 @@
+#ifndef __LIBRESER_TEST_TESTUTILS_HPP__
+#define __LIBRESER_TEST_TESTUTILS_HPP__
+
 #include <string>
 
 namespace test {
@@ -13,3 +16,5 @@ inline bool contains(const std::string_view str, std::string_view substr) {
 }
 
 };  // namespace test
+
+#endif // __LIBRESER_TEST_TESTUTILS_HPP__

@@ -1,3 +1,6 @@
+#ifndef __LIBRESER_TEST_INGTEGRATION_TEST_UTIL_HPP__
+#define __LIBRESER_TEST_INGTEGRATION_TEST_UTIL_HPP__
+
 #include <sstream>
 
 #include "LibReser/Format.hpp"
@@ -28,3 +31,5 @@ inline static void testRoundTrip(const std::string_view input, const reser::Form
 
   ASSERT_EQ(stream0.str(), referenceStream.str());
 }
+
+#endif // __LIBRESER_TEST_INGTEGRATION_TEST_UTIL_HPP__

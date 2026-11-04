@@ -6,6 +6,7 @@ add_executable(
   Integration/Json.cpp
   Integration/Xml.cpp
   Integration/Toml.cpp
+  Integration/TomlTypes.cpp
   Json/Parser.cpp
   Json/Printer.cpp
   Json/IRConverter.cpp
